@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossary — Zero Trust Network Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12;--surface:#111620;--surface2:#1a2030;
+  --border:rgba(80,180,255,0.12);--border-bright:rgba(80,180,255,0.35);
+  --accent:#4db8ff;--accent2:#00e5a0;--warn:#ffb930;--danger:#ff4d6a;
+  --text:#e8f0ff;--text2:#7a90b0;--text3:#3d5070;
+  --mono:'Share Tech Mono',monospace;--display:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:999}
+a{color:inherit;text-decoration:none}
+
+.header{border-bottom:1px solid var(--border);padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-wrap:wrap;gap:12px}
+.header-logo{display:flex;align-items:center;gap:14px}
+.logo-mark{width:36px;height:36px;border:1.5px solid var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.logo-mark::before{content:'';position:absolute;width:18px;height:18px;border:1.5px solid var(--accent2);border-radius:3px;transform:rotate(45deg)}
+.header h1{font-family:var(--display);font-size:1.1rem;font-weight:700;letter-spacing:.05em}
+.header h1 span{color:var(--accent)}
+.header-meta{font-size:.7rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase}
+nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nav-link{font-size:.7rem;padding:5px 14px;border-radius:4px;border:1px solid var(--border-bright);color:var(--text2);font-family:var(--display);font-weight:600;letter-spacing:.05em;transition:all .15s}
+.nav-link:hover,.nav-link.active{border-color:var(--accent);color:var(--accent);background:rgba(77,184,255,0.08)}
+
+/* search bar */
+.search-bar{padding:1.5rem 2rem .75rem;max-width:600px}
+.search-wrap{display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-bright);border-radius:6px;overflow:hidden}
+.search-wrap input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:.82rem;padding:.65rem 1rem}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-icon{padding:.65rem 1rem;color:var(--text3);font-size:.8rem;flex-shrink:0}
+
+/* filter chips */
+.filter-row{padding:0 2rem 1rem;display:flex;flex-wrap:wrap;gap:8px}
+.filter-chip{font-size:.65rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border-bright);color:var(--text2);cursor:pointer;font-family:var(--display);font-weight:600;letter-spacing:.04em;transition:all .15s;background:transparent}
+.filter-chip:hover{border-color:var(--accent2);color:var(--accent2)}
+.filter-chip.active{background:rgba(0,229,160,0.1);border-color:var(--accent2);color:var(--accent2)}
+
+/* content */
+.content{padding:0 2rem 3rem;max-width:1100px}
+
+/* category section */
+.cat-section{margin-bottom:2.5rem}
+.cat-header{display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+.cat-icon{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;font-family:var(--display);border:1px solid}
+.cat-title{font-family:var(--display);font-size:1.1rem;font-weight:700;color:var(--text)}
+.cat-count{font-size:.65rem;color:var(--text3);margin-left:auto;font-family:var(--display)}
+
+/* term cards grid */
+.terms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:.9rem}
+
+/* individual term card */
+.term-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .2s;cursor:default}
+.term-card:hover{border-color:var(--border-bright)}
+.term-card.highlight{border-color:var(--accent2);background:rgba(0,229,160,0.03)}
+
+.term-head{padding:.75rem 1rem .5rem;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.term-name{font-family:var(--display);font-size:.9rem;font-weight:700;color:var(--text);line-height:1.2}
+.term-tag{font-size:.55rem;padding:2px 7px;border-radius:3px;border:1px solid;flex-shrink:0;margin-top:2px;font-family:var(--display);font-weight:600;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+
+.term-body{padding:0 1rem .85rem}
+
+.plain-def{font-size:.78rem;color:var(--text2);line-height:1.8;margin-bottom:.6rem}
+
+.analogy-box{background:var(--bg);border-left:2px solid var(--accent);padding:.5rem .75rem;border-radius:0 4px 4px 0;margin-bottom:.6rem}
+.analogy-label{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-family:var(--display);font-weight:600;margin-bottom:2px}
+.analogy-text{font-size:.72rem;color:var(--text2);line-height:1.6;font-style:italic}
+
+.why-matters{background:var(--bg);border-left:2px solid var(--accent2);padding:.5rem .75rem;border-radius:0 4px 4px 0;margin-bottom:.6rem}
+.why-label{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent2);font-family:var(--display);font-weight:600;margin-bottom:2px}
+.why-text{font-size:.72rem;color:var(--text2);line-height:1.6}
+
+.real-world{font-size:.68rem;color:var(--text3);padding:.4rem .75rem;background:rgba(255,255,255,0.02);border-radius:4px;border:1px solid var(--border);line-height:1.6}
+.real-world strong{color:var(--warn)}
+
+/* hidden when filtered */
+.term-card.hidden{display:none}
+.cat-section.hidden{display:none}
+
+/* intro box */
+.intro-section{padding:1.5rem 2rem 0;max-width:860px}
+.intro-section h2{font-family:var(--display);font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:.6rem}
+.intro-section h2 span{color:var(--accent)}
+.intro-section p{font-size:.8rem;color:var(--text2);line-height:1.8;max-width:660px;margin-bottom:.5rem}
+
+/* scroll spy */
+.jump-nav{display:flex;flex-wrap:wrap;gap:6px;padding:.5rem 2rem 1rem}
+.jump-link{font-size:.65rem;padding:3px 10px;border-radius:3px;border:1px solid var(--border);color:var(--text3);font-family:var(--display);font-weight:600;transition:all .15s}
+.jump-link:hover{border-color:var(--accent);color:var(--accent)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:2px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.cat-section{animation:fadeIn .3s ease both}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logo">
+    <div class="logo-mark"></div>
+    <div>
+      <h1><span>ZERO TRUST</span> NETWORK LAB</h1>
+      <div class="header-meta">Cybersecurity Education Platform · Glossary of Terms</div>
+    </div>
+  </div>
+  <nav>
+    <a href="index.html" class="nav-link">Simulator</a>
+    <a href="dossiers.html" class="nav-link">User Dossiers</a>
+    <a href="glossary.html" class="nav-link active">Glossary</a>
+  </nav>
+</header>
+
+<div class="intro-section">
+  <h2>Security <span>Glossary</span></h2>
+  <p>New to cybersecurity? This page explains every term used in the simulation — in plain English. Each definition includes a real-world analogy to help it stick, and explains why it matters in the real world.</p>
+  <p style="color:var(--text3)">Use the search box or category filters to find what you're looking for. Terms marked <span style="color:var(--accent2);font-weight:600">★ KEY CONCEPT</span> are especially important for understanding the simulation.</p>
+</div>
+
+<div class="search-bar">
+  <div class="search-wrap">
+    <span class="search-icon">&#9906;</span>
+    <input type="text" id="search-input" placeholder="Search terms, e.g. 'MFA', 'phishing', 'firewall'...">
+  </div>
+</div>
+
+<div class="filter-row">
+  <div class="filter-chip active" onclick="filterCat('all',this)">All terms</div>
+  <div class="filter-chip" onclick="filterCat('zt',this)">Zero Trust</div>
+  <div class="filter-chip" onclick="filterCat('identity',this)">Identity &amp; Access</div>
+  <div class="filter-chip" onclick="filterCat('attacks',this)">Attack Types</div>
+  <div class="filter-chip" onclick="filterCat('devices',this)">Devices &amp; Networks</div>
+  <div class="filter-chip" onclick="filterCat('tools',this)">Tools &amp; Systems</div>
+  <div class="filter-chip" onclick="filterCat('data',this)">Data &amp; Privacy</div>
+</div>
+
+<div class="content" id="content">
+
+  <!-- ZERO TRUST -->
+  <div class="cat-section" id="cat-zt" data-cat="zt">
+    <div class="cat-header">
+      <div class="cat-icon" style="background:rgba(77,184,255,0.15);border-color:rgba(77,184,255,0.4);color:#4db8ff">ZT</div>
+      <span class="cat-title">Zero Trust Principles</span>
+      <span class="cat-count">6 terms</span>
+    </div>
+    <div class="terms-grid">
+
+      <div class="term-card highlight" data-cat="zt" data-name="zero trust">
+        <div class="term-head"><span class="term-name">Zero Trust Architecture</span><span class="term-tag" style="color:#4db8ff;border-color:rgba(77,184,255,0.4)">★ KEY CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">A security model where <strong>no one is automatically trusted</strong> — not even people already inside the company's network. Every single login and access request must be verified, every time, no matter who you are or where you're connecting from.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Imagine a hospital where every door requires your ID badge — even if you work there. The fact that you got through the front door doesn't automatically let you into the pharmacy, the operating theatre, or the records room. You must prove you have a reason to be in each specific place, every time.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Old security models assumed anyone inside the office network was trustworthy. But modern attackers can get inside the network — so zero trust assumes the attacker might already be in and verifies everything anyway.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="zt" data-name="least privilege">
+        <div class="term-head"><span class="term-name">Least Privilege</span><span class="term-tag" style="color:#4db8ff;border-color:rgba(77,184,255,0.4)">★ KEY CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">Every user or system should only have access to the <strong>exact things they need to do their job</strong> — nothing more. A junior employee shouldn't be able to see the CEO's payroll. A delivery driver's app shouldn't have access to your contacts.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">A new employee at a cinema is given a key to the staff entrance and the popcorn room — not the safe, the manager's office, or the CCTV control room. They get exactly what they need, nothing extra.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">If an account is hacked, least privilege limits the damage. A hacker who breaks into a low-level account can only access what that account can access — they can't automatically reach sensitive data.</div></div>
+          <div class="real-world"><strong>Real example:</strong> The 2023 MOVEit breach affected 2,500+ organisations partly because service accounts had far more access than they needed. One over-privileged account gave attackers access to everything.</div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="zt" data-name="assume breach continuous verification">
+        <div class="term-head"><span class="term-name">Assume Breach</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">PRINCIPLE</span></div>
+        <div class="term-body">
+          <div class="plain-def">A mindset where security teams <strong>plan as if attackers are already inside</strong> the system. Instead of only trying to keep attackers out, you also minimise what they can do if they're already in.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">A bank doesn't just lock the front door — it also puts each deposit in a separate vault, uses dye packs, has silent alarms, and limits how much any one teller can access. Even if a robber gets in, the damage is limited.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">No security is perfect. Attackers will sometimes get in. "Assume breach" means you've planned for that and built systems that limit the damage — rather than being caught completely off guard.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="zt" data-name="defence in depth layers">
+        <div class="term-head"><span class="term-name">Defence in Depth</span><span class="term-tag" style="color:#4db8ff;border-color:rgba(77,184,255,0.4)">★ KEY CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">Using <strong>multiple layers of security</strong> so that if one fails, others still protect you. Instead of relying on just a password, you also use MFA, device checks, network monitoring, and so on.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">A medieval castle had a moat, then outer walls, then inner walls, then a keep, then a locked vault — each a separate barrier. Getting through one didn't mean you'd broken in. You had to beat every layer.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">No single security measure is foolproof. Passwords can be guessed. MFA can sometimes be bypassed. But if an attacker has to defeat five different protections in a row, the chances of stopping them dramatically increase.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="zt" data-name="continuous monitoring session">
+        <div class="term-head"><span class="term-name">Continuous Monitoring</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">PRINCIPLE</span></div>
+        <div class="term-body">
+          <div class="plain-def">Security systems that <strong>watch what users do during their session</strong>, not just at login. If something unusual happens mid-session — like downloading 50,000 files — access can be revoked automatically.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Your bank doesn't just check your PIN when you tap your card — it also monitors your spending patterns in real time. If your card is used in two countries at the same time, it freezes automatically, even though you already "passed" the PIN check.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Getting past login doesn't mean a session should be trusted forever. An attacker who steals a valid session cookie could impersonate you after you've logged in. Continuous monitoring catches that.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="zt" data-name="trust score risk signal">
+        <div class="term-head"><span class="term-name">Trust Score</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">A number calculated in real time that reflects <strong>how confident the system is that a login request is legitimate</strong>. It takes into account device health, location, MFA status, behaviour history, and risk signals.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a credit score, but for security. A high score means "everything checks out." A low score means "something's off — let's ask more questions or block access until we're sure."</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">It allows security systems to make nuanced decisions — instead of just "yes" or "no," they can say "yes, but we'll watch closely" or "we need you to verify again before we let you in."</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- IDENTITY & ACCESS -->
+  <div class="cat-section" id="cat-identity" data-cat="identity">
+    <div class="cat-header">
+      <div class="cat-icon" style="background:rgba(0,229,160,0.12);border-color:rgba(0,229,160,0.4);color:#00e5a0">ID</div>
+      <span class="cat-title">Identity &amp; Access Control</span>
+      <span class="cat-count">7 terms</span>
+    </div>
+    <div class="terms-grid">
+
+      <div class="term-card highlight" data-cat="identity" data-name="mfa multi factor authentication two factor">
+        <div class="term-head"><span class="term-name">Multi-Factor Authentication (MFA)</span><span class="term-tag" style="color:#00e5a0;border-color:rgba(0,229,160,0.4)">★ KEY CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">A login process that requires <strong>more than one piece of proof</strong> that you are who you say you are. The three factors are: something you <em>know</em> (password), something you <em>have</em> (a phone or token), and something you <em>are</em> (fingerprint/face).</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like withdrawing cash from an ATM: you need your card (something you have) AND your PIN (something you know). Stealing just the PIN isn't enough — you need both.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Microsoft found that MFA blocks 99.9% of automated password attacks. Even if someone steals your password, they still can't log in without the second factor.</div></div>
+          <div class="real-world"><strong>Types of MFA (weakest → strongest):</strong> SMS text code → Authenticator app → Push notification → Hardware key (YubiKey) → Passkey / biometric. SMS is better than nothing, but can be beaten by SIM swapping.</div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="identity" data-name="password credential authentication">
+        <div class="term-head"><span class="term-name">Credentials</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">BASICS</span></div>
+        <div class="term-body">
+          <div class="plain-def">The information you use to prove your identity — most commonly a <strong>username and password</strong>. Credentials can also include biometrics, security keys, or certificates.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Your credentials are like a key to a house. If someone copies your key, they can get in without you knowing. The stronger the lock (password complexity + MFA), the harder it is to copy.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Stolen credentials are the #1 way attackers get into systems. Billions of credentials have been leaked in data breaches — and many people reuse the same password everywhere, so one breach can unlock dozens of accounts.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="identity" data-name="privilege clearance level access control rbac">
+        <div class="term-head"><span class="term-name">Privilege Levels</span><span class="term-tag" style="color:#4db8ff;border-color:rgba(77,184,255,0.4)">★ KEY CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">Different tiers of permission that determine <strong>what a user is allowed to access</strong>. A Level 1 intern can only see basic documents. A Level 4 admin can access everything. Higher privilege = more responsibility and more risk if compromised.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a government security clearance — Confidential, Secret, Top Secret. The higher your clearance, the more sensitive information you're allowed to see. Not everyone gets Top Secret just because they work for the government.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">If a low-privilege account is hacked, only low-privilege data is at risk. High-privilege accounts are "crown jewels" for attackers — compromising an admin account can give access to everything.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="identity" data-name="privilege escalation elevation">
+        <div class="term-head"><span class="term-name">Privilege Escalation</span><span class="term-tag" style="color:var(--danger);border-color:rgba(255,77,106,0.4)">ATTACK</span></div>
+        <div class="term-body">
+          <div class="plain-def">When someone (or a piece of malware) <strong>gains higher-level access than they were originally given</strong> — for example, a normal user account gaining admin rights by exploiting a software bug.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">You start as a guest at a hotel and find an unattended master key — suddenly you can enter every room. You didn't earn that access, you exploited a gap in security to take it.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Most attacks follow a path: get low-level access, escalate to admin, then cause maximum damage. Blocking privilege escalation stops attackers from moving beyond their initial foothold.</div></div>
+          <div class="real-world"><strong>Real example:</strong> Dave's dossier — he ran a privilege escalation script on his work laptop, attempting to access the Production DB from a Level 1 account. This pattern matches known attacker playbooks.</div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="identity" data-name="shared account credential">
+        <div class="term-head"><span class="term-name">Shared Credentials</span><span class="term-tag" style="color:var(--danger);border-color:rgba(255,77,106,0.4)">BAD PRACTICE</span></div>
+        <div class="term-body">
+          <div class="plain-def">When <strong>multiple people share the same username and password</strong> to access a system. This makes it impossible to know which individual performed any specific action.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Imagine if five colleagues shared one key to the office and something went missing. You know the key was used — but you have no idea which of the five people actually used it. The audit trail is useless.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Accountability is a core security principle. If something goes wrong, you need to know exactly who did what. Shared credentials make this impossible, and also increase the chance of the password leaking.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="identity" data-name="stale credential access revocation offboarding">
+        <div class="term-head"><span class="term-name">Stale Credentials</span><span class="term-tag" style="color:var(--warn);border-color:rgba(255,185,48,0.4)">RISK</span></div>
+        <div class="term-body">
+          <div class="plain-def">Login details that <strong>still work even though they shouldn't</strong> — for example, an ex-employee whose account was never disabled after they left the company.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a hotel that forgets to deactivate a guest's key card after checkout. Weeks later, the ex-guest still has a working key to their old room.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">One study found that 58% of ex-employees still had active access to company systems after leaving. Attackers actively look for stale accounts because they often go unmonitored.</div></div>
+          <div class="real-world"><strong>In the dossier:</strong> The TechVendor account — a former support agent left but their shared credentials were never changed. The account was later used from a TOR exit node at 3am on a Sunday.</div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="identity" data-name="session token cookie authentication bypass">
+        <div class="term-head"><span class="term-name">Session Token</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">A temporary digital pass your browser stores after you log in, so <strong>you don't have to enter your password on every page</strong>. It usually expires after a set time. If stolen, an attacker can use it to access your account without needing your password.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a wristband at a theme park — once you've paid and gone through the entrance, the wristband lets you on rides without paying again. But if someone else puts on your wristband, they get free rides too.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Session hijacking — stealing someone's active session token — is a real attack. Zero trust systems expire tokens frequently and require re-verification for sensitive actions, even mid-session.</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ATTACK TYPES -->
+  <div class="cat-section" id="cat-attacks" data-cat="attacks">
+    <div class="cat-header">
+      <div class="cat-icon" style="background:rgba(255,77,106,0.1);border-color:rgba(255,77,106,0.4);color:#ff4d6a">ATK</div>
+      <span class="cat-title">Attack Types</span>
+      <span class="cat-count">8 terms</span>
+    </div>
+    <div class="terms-grid">
+
+      <div class="term-card" data-cat="attacks" data-name="phishing email social engineering">
+        <div class="term-head"><span class="term-name">Phishing</span><span class="term-tag" style="color:#ff4d6a;border-color:rgba(255,77,106,0.4)">★ KEY CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">A type of scam where an attacker <strong>sends a fake email or message</strong> pretending to be a trusted source (your bank, your employer, Netflix) to trick you into clicking a link and entering your login details on a fake website.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Someone calls you pretending to be your bank, says there's been suspicious activity, and asks you to "confirm" your card number and PIN. The bank would never call and ask for this — but it works on thousands of people every day.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Phishing is the #1 cause of data breaches worldwide. It doesn't matter how strong your password is if you hand it to an attacker on a fake login page.</div></div>
+          <div class="real-world"><strong>In the dossier:</strong> Carol clicked a link from a fake HR email and partially entered her credentials before noticing the URL was wrong. Even partial entry can give attackers a foothold.</div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="attacks" data-name="credential stuffing brute force login attack">
+        <div class="term-head"><span class="term-name">Credential Stuffing</span><span class="term-tag" style="color:#ff4d6a;border-color:rgba(255,77,106,0.4)">★ KEY CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">An automated attack where hackers <strong>take stolen username/password pairs from one breach and try them on other websites</strong>. If you used the same password on Netflix and your work email, and Netflix was breached, attackers will try that password on your work email too.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Imagine someone found a master key that works on one type of lock. They walk down every street trying it on every door of the same lock type. They don't know which doors it'll open, but they try them all — automatically.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">There are literally billions of stolen credentials available online for free. Using unique passwords for every account is the single best defence. A password manager makes this easy.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="attacks" data-name="impossible travel geolocation">
+        <div class="term-head"><span class="term-name">Impossible Travel</span><span class="term-tag" style="color:#ff4d6a;border-color:rgba(255,77,106,0.4)">★ KEY CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">A security alert triggered when the <strong>same account logs in from two locations that are too far apart too quickly</strong> — for example, London at 8am and Lagos at 8:22am. Since no plane can cover that distance in 22 minutes, one of those logins cannot be the real user.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Your Oyster card taps at London Bridge station at 9:02am and then at Heathrow airport at 9:03am. The tube journey takes 45 minutes — so one of those taps must be someone using a cloned card.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">This signal is a near-certain indicator of account compromise. The physics of travel make it one of the hardest signals for attackers to fake.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="attacks" data-name="sim swap mobile phone hijack mfa bypass">
+        <div class="term-head"><span class="term-name">SIM Swap Attack</span><span class="term-tag" style="color:var(--warn);border-color:rgba(255,185,48,0.4)">ATTACK</span></div>
+        <div class="term-body">
+          <div class="plain-def">When an attacker <strong>convinces a mobile phone carrier to transfer your phone number to a new SIM card they control</strong>. After the swap, all SMS messages — including MFA codes — go to the attacker, not you.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">An attacker calls your mobile network pretending to be you, says they got a new phone, and asks to transfer the number. If the carrier doesn't verify properly, your number — and every text sent to it — is now theirs.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">This is why SMS-based MFA is weaker than an authenticator app. The app code is generated on your physical device — transferring your phone number doesn't help the attacker if the code isn't sent by text.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="attacks" data-name="social engineering manipulation deception insider">
+        <div class="term-head"><span class="term-name">Social Engineering</span><span class="term-tag" style="color:var(--warn);border-color:rgba(255,185,48,0.4)">ATTACK</span></div>
+        <div class="term-body">
+          <div class="plain-def">Manipulating people — rather than hacking systems — into <strong>giving up information or access</strong>. Phishing is one type, but social engineering also includes impersonating a colleague, creating a fake emergency, or building false trust over time.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">A con artist doesn't pick your lock — they knock on your door dressed as a plumber, tell you there's an urgent leak, and you let them in. The technical security was bypassed completely by tricking the human.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Humans are often the weakest link in security. No software can protect against a person being tricked. Security awareness training — knowing what these attacks look like — is the best defence.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="attacks" data-name="data breach leak stolen data">
+        <div class="term-head"><span class="term-name">Data Breach</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">When <strong>private or sensitive information is accessed or stolen</strong> without permission. This could be millions of passwords from a hacked website, medical records from a hospital, or financial data from a retail company.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Imagine a library with millions of people's private diaries stored in it. A thief breaks in and photocopies all of them. The diaries are now out in the world — and you can't un-leak them.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Over 33 billion records were stolen in data breaches in 2023 alone. Once your data is out, it stays out — it can appear on dark web marketplaces and be used in attacks for years afterward.</div></div>
+          <div class="real-world"><strong>Check yourself:</strong> Visit haveibeenpwned.com and enter your email address (or a parent's, with permission). It shows which breaches have included that email — this is a legitimate, safe tool used by security professionals.</div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="attacks" data-name="typosquatting fake domain url spoofing">
+        <div class="term-head"><span class="term-name">Typosquatting</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">TECHNIQUE</span></div>
+        <div class="term-body">
+          <div class="plain-def">Registering a <strong>domain name very similar to a real one</strong> to trick people into visiting it. For example, <em>techcorp-hr-portal.com</em> instead of <em>techcorp.com</em>, or <em>paypa1.com</em> (with a 1) instead of <em>paypal.com</em>.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Someone opens a fake shop called "Nikee" next to a real Nike store, with a very similar logo and layout. Shoppers who don't look closely might walk in thinking it's the real thing.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Always check the full URL before entering passwords. The padlock icon just means the connection is encrypted — it does NOT mean the site is legitimate. Criminals can get padlocks for fake sites too.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="attacks" data-name="insider threat malicious employee">
+        <div class="term-head"><span class="term-name">Insider Threat</span><span class="term-tag" style="color:var(--warn);border-color:rgba(255,185,48,0.4)">RISK</span></div>
+        <div class="term-body">
+          <div class="plain-def">A security risk that <strong>comes from within the organisation</strong> — a current or former employee, contractor, or partner who misuses their legitimate access, either deliberately or accidentally.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">A bank employee who has access to the vault every day, but one day decides to take money home. The vault's security was designed to keep outsiders out — it can't easily stop someone who already has the key.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Insider threats are hard to detect because the person is using legitimate access. Monitoring for unusual patterns — accessing files they've never touched, downloading large amounts of data — is key to catching them.</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DEVICES & NETWORKS -->
+  <div class="cat-section" id="cat-devices" data-cat="devices">
+    <div class="cat-header">
+      <div class="cat-icon" style="background:rgba(180,120,255,0.12);border-color:rgba(180,120,255,0.4);color:#b478ff">NET</div>
+      <span class="cat-title">Devices &amp; Networks</span>
+      <span class="cat-count">6 terms</span>
+    </div>
+    <div class="terms-grid">
+
+      <div class="term-card" data-cat="devices" data-name="vpn virtual private network tunnel">
+        <div class="term-head"><span class="term-name">VPN (Virtual Private Network)</span><span class="term-tag" style="color:#4db8ff;border-color:rgba(77,184,255,0.4)">★ KEY CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">A service that <strong>encrypts your internet connection and routes it through a server in another location</strong>. Companies use VPNs so employees working from home can securely connect to internal systems as if they were in the office.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like sending your letter through a secure, sealed pneumatic tube instead of the regular post. Even if someone intercepts it mid-journey, they can't read the contents — it's encrypted. And it comes out at the company's private office, not the public post box.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Without a VPN, data sent over public wifi (e.g. a café) can be intercepted. A VPN makes that much harder. However, VPNs don't make you anonymous — your company can still see everything you do on their network.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="devices" data-name="tor anonymizer dark web onion">
+        <div class="term-head"><span class="term-name">TOR Network</span><span class="term-tag" style="color:var(--danger);border-color:rgba(255,77,106,0.4)">HIGH RISK</span></div>
+        <div class="term-body">
+          <div class="plain-def">A network that <strong>hides your location and identity by bouncing your connection through multiple volunteer computers worldwide</strong>. Legitimate uses include journalism and activism in censored countries — but it is also widely used by criminals to hide their tracks.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like passing a letter through 10 different anonymous postboxes in different countries, each one sealed and re-addressed, so nobody along the chain can see where it started or where it's going.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">When a corporate login attempt comes from a TOR exit node, it almost always means the person is deliberately hiding their real location. Zero trust blocks this because accountability is impossible — a core requirement.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="devices" data-name="mdm mobile device management byod managed">
+        <div class="term-head"><span class="term-name">MDM / Device Management</span><span class="term-tag" style="color:#4db8ff;border-color:rgba(77,184,255,0.4)">★ KEY CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">Software that lets a company <strong>monitor, manage, and enforce security policies on devices</strong> used for work. An MDM-enrolled device can be remotely wiped if lost, and must meet requirements like disk encryption and updated software before it can access company resources.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a company car — you can drive it, but the company knows where it is, can set speed limits, ensures it's properly maintained, and can immobilise it remotely if it's stolen.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">An unmanaged personal device is a blind spot — the company has no idea if it's infected with malware. In zero trust, device posture is a mandatory signal before access is granted.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="devices" data-name="byod bring your own device personal laptop">
+        <div class="term-head"><span class="term-name">BYOD (Bring Your Own Device)</span><span class="term-tag" style="color:var(--warn);border-color:rgba(255,185,48,0.4)">RISK</span></div>
+        <div class="term-body">
+          <div class="plain-def">A policy where employees use their <strong>personal laptops or phones for work</strong> instead of company-issued devices. Convenient — but it means the company can't fully control the security of those devices.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">A surgeon bringing their own scalpels from home instead of using hospital-sterilised ones. The hospital has no way to guarantee those scalpels are clean or safe — they just have to trust the surgeon.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Personal devices often have outdated software, no enterprise antivirus, and might be shared with family members. Corporate data accessed on a personal device might be copied to personal cloud storage without the company knowing.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="devices" data-name="firewall network security perimeter">
+        <div class="term-head"><span class="term-name">Firewall</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">BASICS</span></div>
+        <div class="term-body">
+          <div class="plain-def">A security system that <strong>monitors and controls incoming and outgoing network traffic</strong> based on predefined rules. It's like a security guard at the network gate — deciding what's allowed in and out.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a bouncer at a club who checks everyone coming in against a list of allowed and banned people. Anything that doesn't match the rules — blocked.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Firewalls are a foundational defence-in-depth layer. They don't solve everything — attackers can work around them — but they block a huge amount of automated scanning and malicious traffic from ever reaching your systems.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="devices" data-name="ip address geolocation network identity">
+        <div class="term-head"><span class="term-name">IP Address</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">BASICS</span></div>
+        <div class="term-body">
+          <div class="plain-def">A unique number assigned to every device connected to the internet — like a <strong>postal address for your computer</strong>. It can be used to roughly identify your location and is used in impossible travel detection.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a postcode — it tells you roughly where someone is (city or region) but not their exact house. Security systems use IP addresses to flag unusual login locations.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Security logs record the IP address of every login attempt. This is how impossible travel is detected, how attack source countries are identified, and how TOR exit nodes are spotted — their IP addresses are published in public lists.</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOOLS & SYSTEMS -->
+  <div class="cat-section" id="cat-tools" data-cat="tools">
+    <div class="cat-header">
+      <div class="cat-icon" style="background:rgba(255,185,48,0.12);border-color:rgba(255,185,48,0.4);color:#ffb930">SYS</div>
+      <span class="cat-title">Security Tools &amp; Systems</span>
+      <span class="cat-count">5 terms</span>
+    </div>
+    <div class="terms-grid">
+
+      <div class="term-card" data-cat="tools" data-name="siem security information event management log monitoring">
+        <div class="term-head"><span class="term-name">SIEM</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">TOOL</span></div>
+        <div class="term-body">
+          <div class="plain-def">Stands for Security Information and Event Management. A system that <strong>collects and analyses logs from across all company systems</strong> in one place, looking for patterns that suggest a security incident — like 847 login failures in 4 minutes.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a security operations centre in a large shopping centre that receives feeds from every single camera and alarm — all displayed in one place so a small team can monitor everything at once and spot anything unusual.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Attacks rarely happen in isolation — they leave traces across multiple systems. A SIEM connects the dots between a failed login here, a suspicious file access there, and an unusual outbound connection somewhere else.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="tools" data-name="edr endpoint detection response antivirus malware">
+        <div class="term-head"><span class="term-name">EDR (Endpoint Detection &amp; Response)</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">TOOL</span></div>
+        <div class="term-body">
+          <div class="plain-def">Advanced security software installed on devices (endpoints) that <strong>continuously monitors behaviour</strong> — not just known viruses, but suspicious actions like a script trying to gain admin access or an app reading files it shouldn't.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a CCTV camera inside your house that doesn't just check who comes in the door, but watches everything that happens inside — and alerts security if someone starts trying to open the safe.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Traditional antivirus matches known malware signatures. EDR looks for suspicious behaviour — it can catch brand new attacks that have never been seen before, because it flags "this is weird" rather than "this matches a known virus."</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="tools" data-name="haveibeenpwned breach check hibp">
+        <div class="term-head"><span class="term-name">HaveIBeenPwned</span><span class="term-tag" style="color:#00e5a0;border-color:rgba(0,229,160,0.4)">FREE TOOL</span></div>
+        <div class="term-body">
+          <div class="plain-def">A <strong>free, legitimate website (haveibeenpwned.com)</strong> where you can check if your email address or phone number has appeared in any publicly known data breaches. Used by security professionals worldwide.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like checking a public registry to see if your passport details have appeared on a stolen documents list. It doesn't give anyone access to your account — it just tells you if your information is already out there.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">If your email has been in a breach, change the password for that service immediately — and change it on any other site where you used the same password. Companies like Microsoft and 1Password integrate with this service to automatically warn users.</div></div>
+          <div class="real-world"><strong>Try it:</strong> Visit haveibeenpwned.com — it is completely safe and does not require you to enter a password. Just enter an email address to see its breach history.</div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="tools" data-name="password manager 1password bitwarden">
+        <div class="term-head"><span class="term-name">Password Manager</span><span class="term-tag" style="color:#00e5a0;border-color:rgba(0,229,160,0.4)">BEST PRACTICE</span></div>
+        <div class="term-body">
+          <div class="plain-def">An app that <strong>generates and stores a unique, strong password for every website</strong> you use. You only need to remember one master password, and the app handles the rest. Examples: Bitwarden (free), 1Password, Apple Keychain.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a keychain that holds a hundred unique, unpickable keys — one for every door you need to open. You don't need to remember them all; you just carry the keychain. You only need the one key to open the keychain itself.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Most people reuse passwords because they can't remember unique ones for 50 different sites. A password manager removes that excuse — every site gets a random 20-character password, so one breach doesn't compromise everything else.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="tools" data-name="encryption data protection ssl tls https">
+        <div class="term-head"><span class="term-name">Encryption</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">BASICS</span></div>
+        <div class="term-body">
+          <div class="plain-def">The process of <strong>scrambling data so only someone with the correct key can read it</strong>. HTTPS on websites, end-to-end encryption on messaging apps, and disk encryption on laptops all use this principle.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like writing a letter in a secret code that only the recipient knows how to decode. Even if a stranger intercepts the letter, they just see gibberish.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Without disk encryption, a stolen laptop's data can be read by anyone — even without the login password — by booting from a USB stick. With encryption, the data is unreadable without the decryption key.</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DATA & PRIVACY -->
+  <div class="cat-section" id="cat-data" data-cat="data">
+    <div class="cat-header">
+      <div class="cat-icon" style="background:rgba(0,229,160,0.12);border-color:rgba(0,229,160,0.4);color:#00e5a0">DAT</div>
+      <span class="cat-title">Data &amp; Privacy</span>
+      <span class="cat-count">4 terms</span>
+    </div>
+    <div class="terms-grid">
+
+      <div class="term-card" data-cat="data" data-name="audit trail log accountability">
+        <div class="term-head"><span class="term-name">Audit Trail</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">A <strong>recorded log of every action taken in a system</strong> — who logged in, when, from where, what files they accessed, and what they changed. It's the paper trail that security teams use to investigate incidents.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a visitor sign-in book at a school reception — every person who enters writes their name, time in, and who they're visiting. If something goes wrong, the book shows exactly who was there.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">After a breach, security teams forensically examine audit logs to understand exactly what happened and when. Shared credentials destroy the audit trail because you can't link actions to individuals.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="data" data-name="supply chain third party vendor risk">
+        <div class="term-head"><span class="term-name">Supply Chain Risk</span><span class="term-tag" style="color:var(--warn);border-color:rgba(255,185,48,0.4)">CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">The risk that comes from <strong>third-party suppliers or partners who have access to your systems</strong>. A company can have excellent internal security but be breached through a less-secure vendor who has a back-door connection.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">You put a high-security lock on your front door — but you gave a spare key to a cleaning company whose staff leave their keys in their car. Your security is only as strong as the weakest person who has a key.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">The SolarWinds attack (2020) compromised 18,000 organisations by hiding malware in a software update from a trusted supplier. The attack bypassed all internal security because it came from a trusted source.</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="data" data-name="data hygiene old records sensitive information cleanup">
+        <div class="term-head"><span class="term-name">Data Hygiene</span><span class="term-tag" style="color:var(--text2);border-color:var(--border-bright)">PRACTICE</span></div>
+        <div class="term-body">
+          <div class="plain-def">The practice of <strong>keeping data clean, accurate, and limited to what's actually needed</strong>. This includes deleting old files, removing ex-employee accounts, and not storing sensitive data longer than necessary.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like regularly clearing out old paperwork from your filing cabinet. Old bank statements from 1997 don't need to be kept forever — the longer you keep them, the longer someone who breaks in can access them.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">In Dave's dossier, an old wiki page had server credentials from 2019 that were never deleted. Old data is often forgotten, unmonitored, and a goldmine for attackers. "You can't leak data you don't have."</div></div>
+        </div>
+      </div>
+
+      <div class="term-card" data-cat="data" data-name="cve vulnerability patch update software security">
+        <div class="term-head"><span class="term-name">CVE / Vulnerability</span><span class="term-tag" style="color:var(--warn);border-color:rgba(255,185,48,0.4)">CONCEPT</span></div>
+        <div class="term-body">
+          <div class="plain-def">A <strong>CVE (Common Vulnerability and Exposure)</strong> is a publicly disclosed security flaw in software. Every known vulnerability gets a unique ID (e.g. CVE-2024-21338) and a severity score. Software updates ("patches") fix these flaws.</div>
+          <div class="analogy-box"><div class="analogy-label">Everyday analogy</div><div class="analogy-text">Like a recalled car model with a known brake fault. The manufacturer publishes a recall notice (the CVE), and you need to take it to the garage to get it fixed (the patch). If you ignore the recall, you're driving a car with a known flaw attackers can exploit.</div></div>
+          <div class="why-matters"><div class="why-label">Why it matters</div><div class="why-text">Bob's unpatched MacBook had 14 known CVEs. Attackers scan the internet looking for devices running unpatched software. Once found, they can exploit the known flaw to gain access — no guessing required.</div></div>
+          <div class="real-world"><strong>Check it:</strong> Visit nvd.nist.gov and search any CVE number mentioned in the dossiers. You'll see the real severity rating, a technical description, and whether a patch exists.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div style="padding:1rem 2rem 2.5rem;font-size:.65rem;color:var(--text3);border-top:1px solid var(--border)">
+  Terms and definitions on this page are written for educational purposes and simplified for clarity. For precise technical definitions, refer to NIST SP 800-207, MITRE ATT&CK, and OWASP documentation.
+</div>
+
+<script>
+function filterCat(cat,chip){
+  document.querySelectorAll('.filter-chip').forEach(function(c){c.classList.remove('active')});
+  chip.classList.add('active');
+  document.querySelectorAll('.cat-section').forEach(function(s){
+    if(cat==='all'||s.dataset.cat===cat){s.classList.remove('hidden')}
+    else{s.classList.add('hidden')}
+  });
+  document.getElementById('search-input').value='';
+}
+
+document.getElementById('search-input').addEventListener('input',function(){
+  var q=this.value.toLowerCase().trim();
+  document.querySelectorAll('.filter-chip').forEach(function(c){c.classList.remove('active')});
+  document.querySelector('.filter-chip').classList.add('active');
+  if(!q){
+    document.querySelectorAll('.cat-section').forEach(function(s){s.classList.remove('hidden')});
+    document.querySelectorAll('.term-card').forEach(function(c){c.classList.remove('hidden')});
+    return;
+  }
+  document.querySelectorAll('.term-card').forEach(function(card){
+    var name=card.dataset.name||'';
+    var text=card.innerText.toLowerCase();
+    if(name.indexOf(q)>-1||text.indexOf(q)>-1){card.classList.remove('hidden')}
+    else{card.classList.add('hidden')}
+  });
+  document.querySelectorAll('.cat-section').forEach(function(s){
+    var visible=s.querySelectorAll('.term-card:not(.hidden)').length;
+    if(visible===0){s.classList.add('hidden')}else{s.classList.remove('hidden')}
+  });
+});
+</script>
+</body>
+</html>

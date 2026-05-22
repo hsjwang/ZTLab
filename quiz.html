@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assessment — Zero Trust Network Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12;--surface:#111620;--surface2:#1a2030;
+  --border:rgba(80,180,255,0.12);--border-bright:rgba(80,180,255,0.35);
+  --accent:#4db8ff;--accent2:#00e5a0;--warn:#ffb930;--danger:#ff4d6a;
+  --text:#e8f0ff;--text2:#7a90b0;--text3:#3d5070;
+  --mono:'Share Tech Mono',monospace;--display:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:999}
+a{color:inherit;text-decoration:none}
+
+.header{border-bottom:1px solid var(--border);padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-wrap:wrap;gap:12px}
+.header-logo{display:flex;align-items:center;gap:14px}
+.logo-mark{width:36px;height:36px;border:1.5px solid var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.logo-mark::before{content:'';position:absolute;width:18px;height:18px;border:1.5px solid var(--accent2);border-radius:3px;transform:rotate(45deg)}
+.header h1{font-family:var(--display);font-size:1.1rem;font-weight:700;letter-spacing:.05em}
+.header h1 span{color:var(--accent)}
+.header-meta{font-size:.7rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase}
+nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nav-link{font-size:.7rem;padding:5px 14px;border-radius:4px;border:1px solid var(--border-bright);color:var(--text2);font-family:var(--display);font-weight:600;letter-spacing:.05em;transition:all .15s;cursor:pointer;text-decoration:none;display:inline-block}
+.nav-link:hover{border-color:var(--accent);color:var(--accent)}
+.nav-link.active{border-color:var(--warn);color:var(--warn);background:rgba(255,185,48,0.07)}
+.nav-link.locked{color:var(--text3);border-color:var(--border);cursor:not-allowed;opacity:.5}
+.nav-link.unlocked{border-color:rgba(0,229,160,0.5);color:var(--accent2)}
+.nav-link.unlocked:hover{background:rgba(0,229,160,0.07)}
+
+/* progress bar */
+.progress-bar-wrap{background:var(--surface);border-bottom:1px solid var(--border);padding:.6rem 2rem;display:flex;align-items:center;gap:14px}
+.progress-label{font-size:.65rem;color:var(--text3);font-family:var(--display);font-weight:600;white-space:nowrap}
+.progress-track{flex:1;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s}
+.progress-count{font-size:.65rem;color:var(--text2);white-space:nowrap;font-family:var(--display);font-weight:600}
+
+/* section anchors */
+.user-section{padding:2rem 2rem 0;max-width:860px}
+.user-section+.user-section{padding-top:1.5rem}
+.section-divider{display:flex;align-items:center;gap:14px;margin-bottom:1.25rem}
+.section-avatar{width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;flex-shrink:0;font-family:var(--display);border:1.5px solid}
+.section-info{}
+.section-name{font-family:var(--display);font-size:1rem;font-weight:700;color:var(--text)}
+.section-sub{font-size:.68rem;color:var(--text2);margin-top:1px}
+.section-badge{margin-left:auto;font-size:.65rem;padding:3px 10px;border-radius:3px;border:1px solid;font-family:var(--display);font-weight:600}
+
+/* question card */
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:.9rem;transition:border-color .2s}
+.q-card.answered-correct{border-color:rgba(0,229,160,0.4)}
+.q-card.answered-wrong{border-color:rgba(255,77,106,0.3)}
+.q-header{padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px}
+.q-num{font-size:.6rem;color:var(--accent);border:1px solid rgba(77,184,255,0.3);padding:1px 6px;border-radius:3px;flex-shrink:0;margin-top:2px;font-family:var(--display);font-weight:600}
+.q-text{font-size:.8rem;color:var(--text);line-height:1.6;font-family:var(--display);font-weight:600}
+
+/* choices */
+.q-choices{padding:.6rem .75rem}
+.choice{display:flex;align-items:flex-start;gap:10px;padding:.55rem .75rem;border-radius:5px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer;transition:all .15s;background:transparent}
+.choice:hover:not(.disabled){background:var(--surface2);border-color:var(--border-bright)}
+.choice.selected{border-color:var(--accent);background:rgba(77,184,255,0.06)}
+.choice.correct{border-color:var(--accent2);background:rgba(0,229,160,0.08);cursor:default}
+.choice.wrong{border-color:var(--danger);background:rgba(255,77,106,0.06);cursor:default}
+.choice.reveal-correct{border-color:rgba(0,229,160,0.5);background:rgba(0,229,160,0.05);cursor:default}
+.choice.disabled{cursor:default}
+.choice-letter{width:20px;height:20px;border-radius:4px;border:1px solid var(--border-bright);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0;font-family:var(--display);color:var(--text2);transition:all .15s}
+.choice.selected .choice-letter{border-color:var(--accent);color:var(--accent);background:rgba(77,184,255,0.1)}
+.choice.correct .choice-letter{border-color:var(--accent2);color:var(--accent2);background:rgba(0,229,160,0.15)}
+.choice.wrong .choice-letter{border-color:var(--danger);color:var(--danger);background:rgba(255,77,106,0.12)}
+.choice.reveal-correct .choice-letter{border-color:var(--accent2);color:var(--accent2);background:rgba(0,229,160,0.1)}
+.choice-text{font-size:.75rem;color:var(--text2);line-height:1.5}
+.choice.correct .choice-text,.choice.reveal-correct .choice-text{color:var(--text)}
+.choice.wrong .choice-text{color:var(--text2)}
+
+/* submit button */
+.q-actions{padding:.25rem .75rem .75rem;display:flex;align-items:center;gap:10px}
+.submit-btn{font-size:.7rem;padding:6px 16px;border-radius:4px;border:1px solid rgba(77,184,255,0.4);color:var(--accent);font-family:var(--display);font-weight:600;cursor:pointer;transition:all .15s;background:transparent}
+.submit-btn:hover:not(:disabled){background:rgba(77,184,255,0.08)}
+.submit-btn:disabled{opacity:.35;cursor:default}
+.q-hint{font-size:.65rem;color:var(--text3)}
+
+/* answer reveal */
+.reveal-box{margin:.25rem .75rem .75rem;border-radius:5px;overflow:hidden;display:none}
+.reveal-box.show{display:block;animation:slideDown .2s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.reveal-section{padding:.6rem .9rem;border-bottom:1px solid rgba(0,0,0,0.15)}
+.reveal-section:last-child{border-bottom:none}
+.reveal-label{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;font-family:var(--display);font-weight:600;margin-bottom:.3rem}
+.reveal-text{font-size:.72rem;line-height:1.6}
+.reveal-box.correct-reveal{background:rgba(0,229,160,0.06);border:1px solid rgba(0,229,160,0.25)}
+.reveal-box.correct-reveal .reveal-label{color:var(--accent2)}
+.reveal-box.correct-reveal .reveal-text{color:var(--text2)}
+.reveal-box.wrong-reveal{background:rgba(255,77,106,0.05);border:1px solid rgba(255,77,106,0.2)}
+.reveal-box.wrong-reveal .reveal-label{color:var(--danger)}
+.reveal-box.wrong-reveal .reveal-text{color:var(--text2)}
+.flag-reveal{background:rgba(255,77,106,0.04);padding:.6rem .9rem}
+.flag-reveal-label{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--danger);font-family:var(--display);font-weight:600;margin-bottom:.4rem}
+.flag-item-reveal{font-size:.7rem;color:var(--text2);padding:.35rem .6rem;border-left:2px solid var(--danger);background:rgba(255,77,106,0.04);margin-bottom:4px;line-height:1.5;border-radius:0 4px 4px 0}
+.flag-item-reveal strong{color:var(--danger)}
+
+/* score / unlock banner */
+.unlock-banner{margin:1.5rem 2rem;padding:1.25rem 1.5rem;border-radius:8px;border:1px solid rgba(0,229,160,0.5);background:rgba(0,229,160,0.06);display:none;animation:fadeIn .4s ease}
+.unlock-banner.show{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.unlock-icon{font-size:2rem;flex-shrink:0}
+.unlock-text{}
+.unlock-title{font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--accent2);margin-bottom:3px}
+.unlock-sub{font-size:.75rem;color:var(--text2);line-height:1.5}
+.unlock-btn{margin-left:auto;padding:8px 20px;border-radius:5px;border:1px solid var(--accent2);color:var(--accent2);font-family:var(--display);font-weight:700;font-size:.78rem;cursor:pointer;transition:all .2s;text-decoration:none;white-space:nowrap;flex-shrink:0}
+.unlock-btn:hover{background:rgba(0,229,160,0.12)}
+
+.score-banner{margin:1.5rem 2rem 0;padding:1rem 1.25rem;border-radius:8px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.score-num{font-family:var(--display);font-size:2rem;font-weight:800}
+.score-label{font-size:.7rem;color:var(--text2)}
+.score-bar-track{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;min-width:100px}
+.score-bar-fill{height:100%;border-radius:3px;transition:width .6s}
+
+.try-again-btn{padding:7px 18px;border-radius:5px;border:1px solid rgba(255,185,48,0.4);color:var(--warn);font-family:var(--display);font-weight:700;font-size:.75rem;cursor:pointer;transition:all .2s;background:transparent}
+.try-again-btn:hover{background:rgba(255,185,48,0.08)}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:2px}
+
+.section-sep{height:1px;background:var(--border);margin:1.5rem 2rem}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logo">
+    <div class="logo-mark"></div>
+    <div>
+      <h1><span>ZERO TRUST</span> NETWORK LAB</h1>
+      <div class="header-meta">Cybersecurity Education Platform · Security Assessment</div>
+    </div>
+  </div>
+  <nav>
+    <a href="dossiers.html" class="nav-link">Dossiers</a>
+    <a href="glossary.html" class="nav-link">Glossary</a>
+    <a href="quiz.html" class="nav-link active">Assessment</a>
+    <span id="sim-nav-link" class="nav-link locked" title="Complete the assessment to unlock">Simulator 🔒</span>
+  </nav>
+</header>
+
+<div class="progress-bar-wrap">
+  <span class="progress-label">Progress</span>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <span class="progress-count" id="progress-count">0 / 15 answered</span>
+</div>
+
+<!-- Score summary (shows after all answered) -->
+<div id="score-summary" style="display:none">
+  <div class="score-banner">
+    <div>
+      <div class="score-num" id="score-num">0/15</div>
+      <div class="score-label">questions correct</div>
+    </div>
+    <div class="score-bar-track"><div class="score-bar-fill" id="score-bar" style="width:0%"></div></div>
+    <div id="retry-wrap"></div>
+  </div>
+</div>
+
+<!-- Unlock banner -->
+<div class="unlock-banner" id="unlock-banner">
+  <div class="unlock-icon">✓</div>
+  <div class="unlock-text">
+    <div class="unlock-title">Simulator Unlocked!</div>
+    <div class="unlock-sub">You scored well enough to access the simulation engine. Head to the Simulator to test your findings from each dossier and see the policy engine in action.</div>
+  </div>
+  <a href="index.html" class="unlock-btn">Launch Simulator →</a>
+</div>
+
+<!-- ══════════════════════════════ ALICE ══════════════════════════════ -->
+<div class="user-section" id="alice">
+  <div class="section-divider">
+    <div class="section-avatar" style="background:rgba(77,184,255,0.15);border-color:rgba(77,184,255,0.5);color:#4db8ff">AC</div>
+    <div class="section-info">
+      <div class="section-name">Alice Chen — IT Administrator</div>
+      <div class="section-sub">Level 4 clearance · Questions 1–3</div>
+    </div>
+    <span class="section-badge" style="color:#4db8ff;border-color:rgba(77,184,255,0.4)">L4 ADMIN</span>
+  </div>
+
+  <!-- Q1 -->
+  <div class="q-card" id="qcard-1">
+    <div class="q-header"><span class="q-num">Q1</span><span class="q-text">A login to Alice's account was recorded in Lagos, Nigeria at 07:52 UTC. Just 22 minutes later, another login came from London. What does this most likely indicate?</span></div>
+    <div class="q-choices" id="choices-1">
+      <div class="choice" onclick="select(1,'A')"><span class="choice-letter">A</span><span class="choice-text">Alice commutes extremely quickly between countries for work</span></div>
+      <div class="choice" onclick="select(1,'B')"><span class="choice-letter">B</span><span class="choice-text">Alice's account credentials have likely been stolen and are being used by someone in Nigeria</span></div>
+      <div class="choice" onclick="select(1,'C')"><span class="choice-letter">C</span><span class="choice-text">The login system has a bug that records incorrect locations</span></div>
+      <div class="choice" onclick="select(1,'D')"><span class="choice-letter">D</span><span class="choice-text">Alice was testing the system remotely using a VPN</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-1" onclick="submit(1)" disabled>Submit answer</button><span class="q-hint" id="hint-1">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-1"></div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="q-card" id="qcard-2">
+    <div class="q-header"><span class="q-num">Q2</span><span class="q-text">Alice admitted to reusing a password on "throwaway sites." That hotel rewards site was breached and her credentials appeared in a dark-web dump. What is this type of attack called when those stolen credentials are then tried on other services?</span></div>
+    <div class="q-choices" id="choices-2">
+      <div class="choice" onclick="select(2,'A')"><span class="choice-letter">A</span><span class="choice-text">Phishing</span></div>
+      <div class="choice" onclick="select(2,'B')"><span class="choice-letter">B</span><span class="choice-text">Credential stuffing</span></div>
+      <div class="choice" onclick="select(2,'C')"><span class="choice-letter">C</span><span class="choice-text">SIM swapping</span></div>
+      <div class="choice" onclick="select(2,'D')"><span class="choice-letter">D</span><span class="choice-text">Privilege escalation</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-2" onclick="submit(2)" disabled>Submit answer</button><span class="q-hint" id="hint-2">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-2"></div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="q-card" id="qcard-3">
+    <div class="q-header"><span class="q-num">Q3</span><span class="q-text">If an attacker already has Alice's correct password, what single security control would most effectively prevent them from accessing the Production Database?</span></div>
+    <div class="q-choices" id="choices-3">
+      <div class="choice" onclick="select(3,'A')"><span class="choice-letter">A</span><span class="choice-text">A stronger firewall blocking external IP addresses</span></div>
+      <div class="choice" onclick="select(3,'B')"><span class="choice-letter">B</span><span class="choice-text">Multi-factor authentication (MFA) requiring a second verification step</span></div>
+      <div class="choice" onclick="select(3,'C')"><span class="choice-letter">C</span><span class="choice-text">Encrypting the database contents</span></div>
+      <div class="choice" onclick="select(3,'D')"><span class="choice-letter">D</span><span class="choice-text">Requiring Alice to change her password every 30 days</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-3" onclick="submit(3)" disabled>Submit answer</button><span class="q-hint" id="hint-3">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-3"></div>
+  </div>
+</div>
+
+<div class="section-sep"></div>
+
+<!-- ══════════════════════════════ BOB ══════════════════════════════ -->
+<div class="user-section" id="bob">
+  <div class="section-divider">
+    <div class="section-avatar" style="background:rgba(0,229,160,0.12);border-color:rgba(0,229,160,0.4);color:#00e5a0">BM</div>
+    <div class="section-info">
+      <div class="section-name">Bob Martinez — Senior Developer</div>
+      <div class="section-sub">Level 3 clearance · Questions 4–6</div>
+    </div>
+    <span class="section-badge" style="color:#00e5a0;border-color:rgba(0,229,160,0.4)">L3 SENIOR</span>
+  </div>
+
+  <!-- Q4 -->
+  <div class="q-card" id="qcard-4">
+    <div class="q-header"><span class="q-num">Q4</span><span class="q-text">Bob's account received 847 failed login attempts in 4 minutes from 34 different IP addresses across 6 countries. What does this pattern most clearly indicate?</span></div>
+    <div class="q-choices" id="choices-4">
+      <div class="choice" onclick="select(4,'A')"><span class="choice-letter">A</span><span class="choice-text">Bob forgot his password and kept retrying from different devices</span></div>
+      <div class="choice" onclick="select(4,'B')"><span class="choice-letter">B</span><span class="choice-text">The company's authentication servers had a technical fault</span></div>
+      <div class="choice" onclick="select(4,'C')"><span class="choice-letter">C</span><span class="choice-text">An automated credential stuffing attack was targeting Bob's account</span></div>
+      <div class="choice" onclick="select(4,'D')"><span class="choice-letter">D</span><span class="choice-text">Bob's colleagues were all trying to access his account simultaneously</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-4" onclick="submit(4)" disabled>Submit answer</button><span class="q-hint" id="hint-4">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-4"></div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="q-card" id="qcard-5">
+    <div class="q-header"><span class="q-num">Q5</span><span class="q-text">Bob uses an authenticator app for MFA, but his phone is protected by a 4-digit PIN shared with his partner. Why does this weaken his MFA security?</span></div>
+    <div class="q-choices" id="choices-5">
+      <div class="choice" onclick="select(5,'A')"><span class="choice-letter">A</span><span class="choice-text">Authenticator apps don't work properly on phones with shared PINs</span></div>
+      <div class="choice" onclick="select(5,'B')"><span class="choice-letter">B</span><span class="choice-text">Anyone who physically accesses his phone and knows the PIN can generate MFA codes</span></div>
+      <div class="choice" onclick="select(5,'C')"><span class="choice-letter">C</span><span class="choice-text">4-digit PINs automatically disable MFA after a period of time</span></div>
+      <div class="choice" onclick="select(5,'D')"><span class="choice-letter">D</span><span class="choice-text">Sharing a PIN is a legal violation that invalidates the MFA token</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-5" onclick="submit(5)" disabled>Submit answer</button><span class="q-hint" id="hint-5">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-5"></div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="q-card" id="qcard-6">
+    <div class="q-header"><span class="q-num">Q6</span><span class="q-text">Bob's personal MacBook is not enrolled in the company's MDM system and runs an unpatched OS with 14 known CVEs. From a zero trust perspective, why is this a problem even if Bob himself is trustworthy?</span></div>
+    <div class="q-choices" id="choices-6">
+      <div class="choice" onclick="select(6,'A')"><span class="choice-letter">A</span><span class="choice-text">It isn't a problem — only the person's identity matters in zero trust, not the device</span></div>
+      <div class="choice" onclick="select(6,'B')"><span class="choice-letter">B</span><span class="choice-text">The company cannot verify the device's security posture, and it may be compromised without Bob knowing</span></div>
+      <div class="choice" onclick="select(6,'C')"><span class="choice-letter">C</span><span class="choice-text">Unpatched devices automatically block MFA from functioning</span></div>
+      <div class="choice" onclick="select(6,'D')"><span class="choice-letter">D</span><span class="choice-text">MDM enrolment is only required for mobile phones, not laptops</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-6" onclick="submit(6)" disabled>Submit answer</button><span class="q-hint" id="hint-6">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-6"></div>
+  </div>
+</div>
+
+<div class="section-sep"></div>
+
+<!-- ══════════════════════════════ CAROL ══════════════════════════════ -->
+<div class="user-section" id="carol">
+  <div class="section-divider">
+    <div class="section-avatar" style="background:rgba(180,120,255,0.12);border-color:rgba(180,120,255,0.4);color:#b478ff">CS</div>
+    <div class="section-info">
+      <div class="section-name">Carol Singh — Data Analyst</div>
+      <div class="section-sub">Level 2 clearance · Questions 7–9</div>
+    </div>
+    <span class="section-badge" style="color:#b478ff;border-color:rgba(180,120,255,0.4)">L2 ANALYST</span>
+  </div>
+
+  <!-- Q7 -->
+  <div class="q-card" id="qcard-7">
+    <div class="q-header"><span class="q-num">Q7</span><span class="q-text">Carol clicked a link in an email from "hr-techcorp-portal.com" instead of "techcorp.com" and partially entered her password before noticing. What technique did the attacker use to make the fake domain look legitimate?</span></div>
+    <div class="q-choices" id="choices-7">
+      <div class="choice" onclick="select(7,'A')"><span class="choice-letter">A</span><span class="choice-text">Typosquatting — registering a domain name very similar to the real one</span></div>
+      <div class="choice" onclick="select(7,'B')"><span class="choice-letter">B</span><span class="choice-text">SQL injection — inserting malicious code into the company's real website</span></div>
+      <div class="choice" onclick="select(7,'C')"><span class="choice-letter">C</span><span class="choice-text">Brute force — guessing the company's domain until a match was found</span></div>
+      <div class="choice" onclick="select(7,'D')"><span class="choice-letter">D</span><span class="choice-text">SIM swapping — redirecting Carol's phone number to the fake domain</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-7" onclick="submit(7)" disabled>Submit answer</button><span class="q-hint" id="hint-7">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-7"></div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="q-card" id="qcard-8">
+    <div class="q-header"><span class="q-num">Q8</span><span class="q-text">Carol uses SMS text messages as her second MFA factor. Why is SMS-based MFA considered weaker than using an authenticator app?</span></div>
+    <div class="q-choices" id="choices-8">
+      <div class="choice" onclick="select(8,'A')"><span class="choice-letter">A</span><span class="choice-text">SMS codes expire too quickly to be useful</span></div>
+      <div class="choice" onclick="select(8,'B')"><span class="choice-letter">B</span><span class="choice-text">SMS messages can be intercepted via SIM swap attacks, where an attacker transfers your phone number to their SIM</span></div>
+      <div class="choice" onclick="select(8,'C')"><span class="choice-letter">C</span><span class="choice-text">Mobile networks do not encrypt text messages at all</span></div>
+      <div class="choice" onclick="select(8,'D')"><span class="choice-letter">D</span><span class="choice-text">SMS MFA is banned by GDPR regulations in the EU</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-8" onclick="submit(8)" disabled>Submit answer</button><span class="q-hint" id="hint-8">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-8"></div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="q-card" id="qcard-9">
+    <div class="q-header"><span class="q-num">Q9</span><span class="q-text">Carol accessed the internal wiki without a VPN using a cached but technically expired authentication token. In zero trust terms, why should this have been blocked?</span></div>
+    <div class="q-choices" id="choices-9">
+      <div class="choice" onclick="select(9,'A')"><span class="choice-letter">A</span><span class="choice-text">VPN usage is mandatory for all access to any resource, with no exceptions</span></div>
+      <div class="choice" onclick="select(9,'B')"><span class="choice-letter">B</span><span class="choice-text">Zero trust requires every access request to be explicitly verified — an expired token means the session's trust has lapsed and must be re-established</span></div>
+      <div class="choice" onclick="select(9,'C')"><span class="choice-letter">C</span><span class="choice-text">Cached tokens are inherently malicious and indicate a hack attempt</span></div>
+      <div class="choice" onclick="select(9,'D')"><span class="choice-letter">D</span><span class="choice-text">The wiki is public information, so this access does not need to be blocked</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-9" onclick="submit(9)" disabled>Submit answer</button><span class="q-hint" id="hint-9">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-9"></div>
+  </div>
+</div>
+
+<div class="section-sep"></div>
+
+<!-- ══════════════════════════════ DAVE ══════════════════════════════ -->
+<div class="user-section" id="dave">
+  <div class="section-divider">
+    <div class="section-avatar" style="background:rgba(255,185,48,0.12);border-color:rgba(255,185,48,0.35);color:#ffb930">DK</div>
+    <div class="section-info">
+      <div class="section-name">Dave Kim — Engineering Intern</div>
+      <div class="section-sub">Level 1 clearance · Questions 10–12</div>
+    </div>
+    <span class="section-badge" style="color:#ffb930;border-color:rgba(255,185,48,0.4)">L1 INTERN</span>
+  </div>
+
+  <!-- Q10 -->
+  <div class="q-card" id="qcard-10">
+    <div class="q-header"><span class="q-num">Q10</span><span class="q-text">Dave holds Level 1 clearance and attempted to access the Production Database, which requires Level 4. He said he was "just exploring." Should zero trust block this access?</span></div>
+    <div class="q-choices" id="choices-10">
+      <div class="choice" onclick="select(10,'A')"><span class="choice-letter">A</span><span class="choice-text">No — if Dave's intent was innocent, the system should allow it with a warning</span></div>
+      <div class="choice" onclick="select(10,'B')"><span class="choice-letter">B</span><span class="choice-text">Yes — zero trust enforces least privilege absolutely. Intent does not change a privilege mismatch; the system blocks first and investigates second</span></div>
+      <div class="choice" onclick="select(10,'C')"><span class="choice-letter">C</span><span class="choice-text">Only if Dave has previously triggered security alerts</span></div>
+      <div class="choice" onclick="select(10,'D')"><span class="choice-letter">D</span><span class="choice-text">Only if his manager has not vouched for him in writing</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-10" onclick="submit(10)" disabled>Submit answer</button><span class="q-hint" id="hint-10">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-10"></div>
+  </div>
+
+  <!-- Q11 -->
+  <div class="q-card" id="qcard-11">
+    <div class="q-header"><span class="q-num">Q11</span><span class="q-text">Old server credentials and an "admin override code" from 2019 were left on a forgotten wiki page, which Dave found. Who is responsible for this security failure?</span></div>
+    <div class="q-choices" id="choices-11">
+      <div class="choice" onclick="select(11,'A')"><span class="choice-letter">A</span><span class="choice-text">Dave — he should not have been reading old documentation</span></div>
+      <div class="choice" onclick="select(11,'B')"><span class="choice-letter">B</span><span class="choice-text">The organisation — sensitive credentials should never be stored in plain text and should be removed when no longer needed (data hygiene)</span></div>
+      <div class="choice" onclick="select(11,'C')"><span class="choice-letter">C</span><span class="choice-text">The original author of the wiki page in 2019</span></div>
+      <div class="choice" onclick="select(11,'D')"><span class="choice-letter">D</span><span class="choice-text">Both Dave and the organisation share equal responsibility</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-11" onclick="submit(11)" disabled>Submit answer</button><span class="q-hint" id="hint-11">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-11"></div>
+  </div>
+
+  <!-- Q12 -->
+  <div class="q-card" id="qcard-12">
+    <div class="q-header"><span class="q-num">Q12</span><span class="q-text">Dave ran a privilege escalation script on his company laptop that he found on GitHub. The EDR system flagged it immediately. What does this tell us about the value of EDR compared to traditional antivirus?</span></div>
+    <div class="q-choices" id="choices-12">
+      <div class="choice" onclick="select(12,'A')"><span class="choice-letter">A</span><span class="choice-text">Nothing — EDR and antivirus work in exactly the same way</span></div>
+      <div class="choice" onclick="select(12,'B')"><span class="choice-letter">B</span><span class="choice-text">EDR detects suspicious behaviour (like trying to gain admin rights), not just known malware signatures — so it catches threats that antivirus would miss</span></div>
+      <div class="choice" onclick="select(12,'C')"><span class="choice-letter">C</span><span class="choice-text">Antivirus would have also detected this because GitHub scripts are always flagged</span></div>
+      <div class="choice" onclick="select(12,'D')"><span class="choice-letter">D</span><span class="choice-text">EDR only works if the device is MDM-enrolled, which Dave's wasn't</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-12" onclick="submit(12)" disabled>Submit answer</button><span class="q-hint" id="hint-12">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-12"></div>
+  </div>
+</div>
+
+<div class="section-sep"></div>
+
+<!-- ══════════════════════════════ VENDOR ══════════════════════════════ -->
+<div class="user-section" id="vendor">
+  <div class="section-divider">
+    <div class="section-avatar" style="background:rgba(255,77,106,0.1);border-color:rgba(255,77,106,0.35);color:#ff4d6a">EX</div>
+    <div class="section-info">
+      <div class="section-name">TechVendor Support — External Contractor</div>
+      <div class="section-sub">Level 0 clearance · Questions 13–15</div>
+    </div>
+    <span class="section-badge" style="color:#ff4d6a;border-color:rgba(255,77,106,0.4)">L0 EXTERNAL</span>
+  </div>
+
+  <!-- Q13 -->
+  <div class="q-card" id="qcard-13">
+    <div class="q-header"><span class="q-num">Q13</span><span class="q-text">The TechVendor account is shared by 12–15 people. A login occurred at 02:47 on a Sunday from a TOR exit node. The vendor confirmed no one was working at that time. What has most likely happened?</span></div>
+    <div class="q-choices" id="choices-13">
+      <div class="choice" onclick="select(13,'A')"><span class="choice-letter">A</span><span class="choice-text">A vendor agent was working overtime and forgot to report it</span></div>
+      <div class="choice" onclick="select(13,'B')"><span class="choice-letter">B</span><span class="choice-text">The shared credentials have been stolen or leaked, and are now being used by an unauthorised third party</span></div>
+      <div class="choice" onclick="select(13,'C')"><span class="choice-letter">C</span><span class="choice-text">The TOR network randomly routes traffic through company systems</span></div>
+      <div class="choice" onclick="select(13,'D')"><span class="choice-letter">D</span><span class="choice-text">The company's firewall accidentally granted access to an unknown user</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-13" onclick="submit(13)" disabled>Submit answer</button><span class="q-hint" id="hint-13">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-13"></div>
+  </div>
+
+  <!-- Q14 -->
+  <div class="q-card" id="qcard-14">
+    <div class="q-header"><span class="q-num">Q14</span><span class="q-text">Even though the TechVendor account only has access to the low-sensitivity internal wiki, zero trust still blocked the TOR login. Why does network origin matter even for low-clearance resources?</span></div>
+    <div class="q-choices" id="choices-14">
+      <div class="choice" onclick="select(14,'A')"><span class="choice-letter">A</span><span class="choice-text">It doesn't — network origin is irrelevant if the resource has no sensitive data</span></div>
+      <div class="choice" onclick="select(14,'B')"><span class="choice-letter">B</span><span class="choice-text">TOR use is a legal violation in most countries, so it must always be blocked</span></div>
+      <div class="choice" onclick="select(14,'C')"><span class="choice-letter">C</span><span class="choice-text">Zero trust requires accountability — TOR hides the real identity of the requester, which makes it impossible to verify who is actually accessing the system, regardless of resource sensitivity</span></div>
+      <div class="choice" onclick="select(14,'D')"><span class="choice-letter">D</span><span class="choice-text">TOR connections are always accompanied by malware, which is why they are blocked</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-14" onclick="submit(14)" disabled>Submit answer</button><span class="q-hint" id="hint-14">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-14"></div>
+  </div>
+
+  <!-- Q15 -->
+  <div class="q-card" id="qcard-15">
+    <div class="q-header"><span class="q-num">Q15</span><span class="q-text">TechCorp's security team was not consulted when the vendor contract was approved. One of the vendor's employees left but the shared password was never changed. Which two security principles does this scenario primarily violate?</span></div>
+    <div class="q-choices" id="choices-15">
+      <div class="choice" onclick="select(15,'A')"><span class="choice-letter">A</span><span class="choice-text">Encryption and firewall policy</span></div>
+      <div class="choice" onclick="select(15,'B')"><span class="choice-letter">B</span><span class="choice-text">Supply chain risk management (vendor security = your security) and stale credential hygiene (access must be revoked when no longer needed)</span></div>
+      <div class="choice" onclick="select(15,'C')"><span class="choice-letter">C</span><span class="choice-text">GDPR compliance and password complexity requirements</span></div>
+      <div class="choice" onclick="select(15,'D')"><span class="choice-letter">D</span><span class="choice-text">Multi-factor authentication and device management</span></div>
+    </div>
+    <div class="q-actions"><button class="submit-btn" id="submit-15" onclick="submit(15)" disabled>Submit answer</button><span class="q-hint" id="hint-15">Select an option above</span></div>
+    <div class="reveal-box" id="reveal-15"></div>
+  </div>
+</div>
+
+<div style="height:3rem"></div>
+
+<script>
+var ANSWERS={
+  1:{correct:'B',
+    explanation:'This is a classic impossible travel signal. The distance between Lagos and London is approximately 5,000 km — no commercial flight covers that in 22 minutes. One of these logins is not Alice. Zero trust systems flag this as a near-certain indicator of stolen credentials being used remotely.',
+    flags:[
+      {title:'Impossible travel',text:"Lagos to London is physically impossible in 22 minutes. Alice's credentials were almost certainly stolen — likely from the hotel site breach — and are being used by an attacker in Nigeria while she logs in normally from London."},
+      {title:'Credential exposure via third-party breach',text:"Alice signed up to a hotel rewards site with her work email. That site was breached. If she reused a password (which she admitted doing), the attacker now has her working credentials."},
+      {title:'Abnormal communication pattern',text:"The \"family emergency\" email was routed through an unrecognised third-party relay — not the company mail server. This is a social engineering move to explain Alice's absence while the attacker uses her account."}
+    ]
+  },
+  2:{correct:'B',
+    explanation:'Credential stuffing is when attackers take known username/password pairs from one breach and automatically try them on other services. Because Alice reused a password from a breached site, her work account becomes a target. Phishing tricks you into handing over credentials yourself. SIM swap hijacks your phone number. Privilege escalation tries to gain higher access once inside.',
+    flags:[
+      {title:'Password reuse — the root cause',text:'Alice admitted reusing passwords on "throwaway" sites. Credential stuffing is only effective because of password reuse — one breach unlocks dozens of accounts. A password manager would eliminate this risk entirely.'},
+      {title:'Third-party site as attack vector',text:'The hotel rewards site had weaker security than TechCorp. Attackers deliberately target lower-security sites to harvest credentials that will work on higher-value targets. This is supply chain risk applied to identity.'}
+    ]
+  },
+  3:{correct:'B',
+    explanation:"MFA is the single most effective control here. Even if the attacker has Alice's correct password, MFA requires a second factor — something only the real Alice physically has (her phone or hardware key). A firewall can be bypassed if the attacker looks like a legitimate user. Encryption protects data at rest but not access to it. Frequent password changes don't help if the new password is also immediately stolen.",
+    flags:[
+      {title:'Password alone is never enough for high-privilege accounts',text:"Alice holds Level 4 — the highest clearance. Any account with this level of access should have MFA enforced as mandatory, not optional. Her access to the production database means a compromised account gives an attacker access to live customer data and financial records."},
+      {title:'Defence in depth — MFA as a critical layer',text:'This is defence in depth in action: even if one layer (password) fails, the next layer (MFA) catches it. Alice having a strong password would have helped prevent credential stuffing — but MFA would have stopped this specific attack even if the password was already known.'}
+    ]
+  },
+  4:{correct:'C',
+    explanation:"A human physically cannot submit 847 login attempts in 4 minutes from 34 different countries — that's roughly one attempt every 0.28 seconds across multiple continents simultaneously. This is definitively automated software — specifically a credential stuffing botnet. The distributed nature (34 IPs across 6 countries) is also a tell: attackers use many IPs to avoid rate-limiting blocks on any single address.",
+    flags:[
+      {title:'Credential stuffing attack — automated and distributed',text:"The pattern is textbook: high volume, high velocity, multiple distributed source IPs. The attackers are using a botnet to try thousands of username/password combinations from a breach database. Bob's username likely appeared in the 2021 LinkedIn scrape (700M records), giving attackers his email format."},
+      {title:'Bob misidentified the attack as a technical glitch',text:'He described being "locked out" as "the authentication system being glitchy." This is a dangerous misinterpretation — the security team only found out because of SIEM correlation. Users should be trained to report unusual lockouts as potential attacks, not technical issues.'}
+    ]
+  },
+  5:{correct:'B',
+    explanation:"MFA is designed to require something you have (the physical device) plus something you know (the code it generates). If multiple people know the PIN to unlock the device, then the 'something you have' factor is effectively shared — anyone with access to the phone and the PIN can generate valid MFA codes. This breaks the fundamental assumption that only the account owner can produce the second factor.",
+    flags:[
+      {title:'Weak MFA chain — the second factor is no longer exclusive',text:"Bob's MFA is only as strong as his phone's lock screen. A 4-digit PIN shared with another person means two people have access to the MFA device. If his partner's phone is also shared, or if the PIN is overheard or guessed, the second factor is effectively public."},
+      {title:'Physical device security is part of the security model',text:'Zero trust considers device posture. A phone with a weak, shared PIN is a partially compromised MFA device. Biometric lock (fingerprint/face) is significantly stronger because it cannot be shared or observed.'}
+    ]
+  },
+  6:{correct:'B',
+    explanation:"In zero trust, device identity is a mandatory trust signal alongside user identity. An unmanaged personal device is a blindspot — the company has no visibility into whether it has malware, whether its disk is encrypted, what software is running, or whether it's already been compromised. Bob being a good person doesn't change the fact that his laptop might not be. A compromised device can silently steal session tokens, keylog passwords, and exfiltrate data without Bob ever knowing.",
+    flags:[
+      {title:'Unmanaged device — no posture data',text:"Bob's personal MacBook is not enrolled in MDM. The company cannot verify patch status, disk encryption, AV presence, or EDR coverage. From a zero trust perspective, this device gets the same trust level as a stranger's laptop — which is none."},
+      {title:'14 known CVEs including 2 Critical',text:'An unpatched OS with Critical-rated CVEs is a known-vulnerability device. Attackers actively scan for machines running vulnerable software versions. Bob connecting this device to company resources exposes those resources to exploitation via the device itself.'}
+    ]
+  },
+  7:{correct:'A',
+    explanation:"Typosquatting is the technique of registering a domain name that is visually similar to a legitimate one — adding words, hyphens, extra subdomains, or slight misspellings. 'hr-techcorp-portal.com' looks plausible at first glance, especially in an email. SQL injection attacks databases directly and has nothing to do with domains. Brute force is about passwords, not domain names. SIM swapping affects phone numbers, not websites.",
+    flags:[
+      {title:'Phishing via typosquatting',text:"The attacker registered hr-techcorp-portal.com — a convincing fake. Employees in a hurry will often not scrutinise the full URL before entering credentials. Carol only noticed because the padlock icon looked different, not because she checked the domain."},
+      {title:'Partial credential entry still represents a risk',text:"Carol entered her username and the first half of her password before stopping. Even partial entry can help an attacker: it confirms the username format is correct, and partial passwords can be combined with breach data to reconstruct the full credential. The IT team should have treated this as a full compromise and investigated whether the session was being proxied in real time."}
+    ]
+  },
+  8:{correct:'B',
+    explanation:"SMS-based MFA is the weakest form of the 'something you have' factor because it relies on your phone number rather than the physical device. In a SIM swap attack, an attacker contacts your mobile carrier, impersonates you, and convinces them to transfer your number to a new SIM they control. After that, every SMS sent to your number — including MFA codes — goes to the attacker. An authenticator app generates codes on the physical device itself, so transferring the phone number does nothing.",
+    flags:[
+      {title:'SIM swap vulnerability in SMS MFA',text:"Carol's SMS-based MFA can be defeated without ever touching her phone. A motivated attacker with some of her personal information (available from public sources or previous breaches) can call her mobile carrier and perform a SIM swap. This is a known, documented attack — not theoretical."},
+      {title:'Phishing-resistant MFA would have helped',text:"If Carol used a FIDO2 hardware key or passkey, the phishing attack that captured part of her password would have been useless — these MFA methods are cryptographically bound to the legitimate domain and will not authenticate against a fake site."}
+    ]
+  },
+  9:{correct:'B',
+    explanation:"Zero trust's core principle is 'never trust, always verify' — this applies not just at the initial login but continuously throughout a session. An expired token means the authentication context has lapsed. Even if Carol is who she says she is, the system no longer has a verified, current signal of that. Allowing access on an expired token is equivalent to letting someone use a gym membership that ran out last month — the system is supposed to check every time, not just once.",
+    flags:[
+      {title:'Session token bypass — expired credentials accepted',text:"The server failed to reject an expired token. This is a server-side vulnerability in session management, not Carol's fault. But it demonstrates exactly why zero trust emphasises continuous verification: a correctly implemented system should reject the expired token immediately and force re-authentication."},
+      {title:'Bypassing VPN creates an unmonitored access path',text:"Carol's VPN-bypassed session was invisible to the company's network monitoring tools. VPN traffic is logged and inspected; direct HTTPS access via an expired token was not. Even if the resource itself is low-sensitivity, the unmonitored access path is a gap that could be exploited for other purposes."}
+    ]
+  },
+  10:{correct:'B',
+    explanation:"Zero trust enforces least privilege as an absolute — not a preference. The policy engine does not consider intent; it considers the verified facts: Dave's privilege level (1) versus the resource requirement (4). The gap is three levels. No contextual factor can override a hard privilege mismatch in a correctly implemented zero trust system. Intent is for investigators after the fact; the system blocks first.",
+    flags:[
+      {title:'Least privilege — hard block regardless of intent',text:"Dave's Level 1 clearance cannot access Level 4 resources. This is a fundamental zero trust control. Whether Dave intended harm or not is irrelevant to the access decision — it is relevant to the follow-up investigation. Systems must not make assumptions about intent."},
+      {title:'Possible insider threat — ambiguous but flagged',text:"The combination of ethical hacking tools, curiosity about restricted areas, and an executed privilege escalation script creates a pattern that a SOC analyst must investigate. Most insider threats start with small, seemingly innocent actions. The pattern matters even if each individual action has an innocent explanation."}
+    ]
+  },
+  11:{correct:'B',
+    explanation:"Leaving credentials in plain text on a wiki page is an organisational data hygiene failure. The principle of 'you can't leak data you don't have' applies here — if the credentials had been removed when they were no longer needed, Dave could not have found them. Dave reading old documentation is normal behaviour for a curious new employee. The failure belongs to the organisation that allowed sensitive data to persist beyond its useful life.",
+    flags:[
+      {title:'Data hygiene failure — stale sensitive data',text:"Credentials from 2019 should have been deleted, rotated, or replaced when they were decommissioned. Leaving them on an internal wiki is a violation of basic data hygiene principles. This is the organisation's responsibility, not Dave's."},
+      {title:'Defence in depth failure — multiple controls absent',text:"No data loss prevention (DLP) scanning for credentials in the wiki. No automated token/secret expiry. No access review process for old documentation. Each missing control is a layer of defence in depth that was never implemented."}
+    ]
+  },
+  12:{correct:'B',
+    explanation:"Traditional antivirus matches files against a database of known malware signatures. A brand-new script from GitHub — even a malicious one — would not appear in that database. EDR works differently: it monitors behaviour. Attempting to escalate privileges (gain admin rights from a standard user account) is inherently suspicious behaviour regardless of which file caused it. EDR detected the action, not the file.",
+    flags:[
+      {title:'EDR as behavioural detection',text:"The privilege escalation script triggered the EDR because of what it tried to do — gain elevated system access — not because it was a known malicious file. This is the key advantage of EDR over traditional AV: it catches novel threats and misuse of legitimate tools."},
+      {title:'Incomplete onboarding created the gap',text:"Dave had not completed security awareness training before being given device access. A properly onboarded employee would have known that running downloaded scripts on company hardware is a serious policy violation, regardless of their intentions."}
+    ]
+  },
+  13:{correct:'B',
+    explanation:"The vendor confirmed no agent was working at 02:47 on a Sunday morning. The access came from a TOR exit node — a network used to hide the real location of the requester. The combination of an unaccounted-for access time, an anonymising network, and a shared credential that was never changed after an employee left is near-conclusive evidence of credential theft. The stale credential from the departed employee (or someone they told) is the most likely vector.",
+    flags:[
+      {title:'Stale credential — departed employee access never revoked',text:"One vendor agent left the company but the shared password was never changed. This is credential hygiene failure. The departed employee — or anyone they shared the password with — still has valid access credentials. This is exactly how the Sunday morning access likely occurred."},
+      {title:'Shared credential — no accountability or traceability',text:"With 12–15 people sharing one account, there is no audit trail to determine who performed any action. Zero trust requires accountability as a prerequisite for access. A shared credential destroys this. The TOR access cannot be attributed to any individual."}
+    ]
+  },
+  14:{correct:'C',
+    explanation:"Zero trust's 'verify explicitly' principle requires that every access request be attributable to a verified identity. TOR routes traffic through multiple anonymous relays specifically to make attribution impossible — the requester cannot be identified. Even if the wiki is low-sensitivity, granting access to an anonymous, unverifiable actor violates the foundational principle that you must know who you are granting access to. The resource sensitivity is secondary to the accountability requirement.",
+    flags:[
+      {title:'TOR breaks accountability — a non-negotiable zero trust requirement',text:"Accountability means every action in a system must be traceable to a specific, verified individual. TOR makes this impossible by design. Zero trust cannot verify the requester's identity, device, or true location — three of its five mandatory trust signals are absent."},
+      {title:'Even low-sensitivity resources are attack footholds',text:"Access to the internal wiki — even read-only — gives an attacker information about the organisation's structure, staff names, IP addresses, system names, and processes. This information can be used to craft highly targeted phishing emails or plan deeper attacks. No resource is truly zero-risk."}
+    ]
+  },
+  15:{correct:'B',
+    explanation:"Supply chain risk means that a third party with access to your systems is an extension of your attack surface — their security becomes your security problem. Procuring a vendor without involving the security team bypassed this control entirely. Stale credential hygiene means access must be revoked immediately when a person no longer needs it — a departed employee's access (or shared credential they know) must be invalidated. Both failures are present here.",
+    flags:[
+      {title:'Supply chain risk — security team excluded from procurement',text:"TechCorp gave a third-party vendor access to internal systems without the security team reviewing the arrangement. The vendor's security posture, credential management practices, and staff offboarding procedures were never verified. The vendor's security gap became TechCorp's breach."},
+      {title:'Stale credential — no offboarding process',text:"When a vendor employee leaves, their access (or knowledge of shared credentials) must be immediately invalidated. This requires either individual accounts per person (best practice) or an immediate credential rotation process on any staff change. Neither existed here."},
+      {title:'Shared credentials amplify both failures',text:"Individual accounts would have allowed the departed employee's specific access to be revoked without affecting the rest of the team. The shared credential model made revocation require a full password change — which nobody did, because nobody had a process for it."}
+    ]
+  }
+};
+
+var selections={};
+var submitted={};
+var totalAnswered=0;
+var totalCorrect=0;
+
+function select(qnum, letter){
+  if(submitted[qnum]) return;
+  selections[qnum]=letter;
+  var choices=document.getElementById('choices-'+qnum).children;
+  var letters=['A','B','C','D'];
+  for(var i=0;i<choices.length;i++){
+    choices[i].classList.toggle('selected', letters[i]===letter);
+  }
+  document.getElementById('submit-'+qnum).disabled=false;
+  document.getElementById('hint-'+qnum).textContent='';
+}
+
+function submit(qnum){
+  if(submitted[qnum]) return;
+  if(!selections[qnum]){
+    document.getElementById('hint-'+qnum).textContent='Please select an answer first.';
+    return;
+  }
+  submitted[qnum]=true;
+  totalAnswered++;
+  var ans=ANSWERS[qnum];
+  var chosen=selections[qnum];
+  var isCorrect=chosen===ans.correct;
+  if(isCorrect) totalCorrect++;
+
+  var btn=document.getElementById('submit-'+qnum);
+  btn.disabled=true;
+  btn.style.display='none';
+  document.getElementById('hint-'+qnum).style.display='none';
+
+  var card=document.getElementById('qcard-'+qnum);
+  card.classList.add(isCorrect?'answered-correct':'answered-wrong');
+
+  var letters=['A','B','C','D'];
+  var choices=document.getElementById('choices-'+qnum).children;
+  for(var i=0;i<choices.length;i++){
+    choices[i].classList.add('disabled');
+    choices[i].onclick=null;
+    if(letters[i]===ans.correct){
+      choices[i].classList.remove('selected','wrong');
+      choices[i].classList.add(isCorrect&&chosen===ans.correct?'correct':'reveal-correct');
+    } else if(letters[i]===chosen && !isCorrect){
+      choices[i].classList.remove('selected');
+      choices[i].classList.add('wrong');
+    } else {
+      choices[i].classList.remove('selected');
+    }
+  }
+
+  var revealEl=document.getElementById('reveal-'+qnum);
+  var flagsHtml='';
+  if(ans.flags && ans.flags.length){
+    flagsHtml='<div class="flag-reveal"><div class="flag-reveal-label">Red flags revealed</div>';
+    ans.flags.forEach(function(f){
+      flagsHtml+='<div class="flag-item-reveal"><strong>'+f.title+':</strong> '+f.text+'</div>';
+    });
+    flagsHtml+='</div>';
+  }
+  var cls=isCorrect?'correct-reveal':'wrong-reveal';
+  revealEl.className='reveal-box show '+cls;
+  revealEl.innerHTML='<div class="reveal-section"><div class="reveal-label">'+(isCorrect?'Correct ✓':'Incorrect — the right answer was '+ans.correct)+'</div><div class="reveal-text">'+ans.explanation+'</div></div>'+flagsHtml;
+
+  updateProgress();
+  if(totalAnswered===15) showResults();
+}
+
+function updateProgress(){
+  var pct=Math.round((totalAnswered/15)*100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-count').textContent=totalAnswered+' / 15 answered';
+}
+
+function showResults(){
+  var summary=document.getElementById('score-summary');
+  summary.style.display='block';
+  summary.scrollIntoView({behavior:'smooth',block:'start'});
+
+  var pct=Math.round((totalCorrect/15)*100);
+  document.getElementById('score-num').textContent=totalCorrect+'/15';
+  document.getElementById('score-num').style.color=pct>=60?'var(--accent2)':pct>=40?'var(--warn)':'var(--danger)';
+  var bar=document.getElementById('score-bar');
+  bar.style.width=pct+'%';
+  bar.style.background=pct>=60?'var(--accent2)':pct>=40?'var(--warn)':'var(--danger)';
+
+  if(pct>=60){
+    localStorage.setItem('ztlab_passed','1');
+    document.getElementById('unlock-banner').classList.add('show');
+    var sn=document.getElementById('sim-nav-link');
+    sn.className='nav-link unlocked';
+    sn.textContent='Simulator ✓';
+    sn.onclick=function(){window.location.href='index.html'};
+  } else {
+    var rw=document.getElementById('retry-wrap');
+    rw.innerHTML='<button class="try-again-btn" onclick="retryQuiz()">Retry assessment</button>';
+  }
+}
+
+function retryQuiz(){
+  selections={};submitted={};totalAnswered=0;totalCorrect=0;
+  for(var i=1;i<=15;i++){
+    var card=document.getElementById('qcard-'+i);
+    card.className='q-card';
+    var choices=document.getElementById('choices-'+i).children;
+    var letters=['A','B','C','D'];
+    for(var j=0;j<choices.length;j++){
+      choices[j].className='choice';
+      var ltr=letters[j];
+      (function(q,l){choices[j].onclick=function(){select(q,l)}})(i,ltr);
+    }
+    document.getElementById('submit-'+i).disabled=true;
+    document.getElementById('submit-'+i).style.display='';
+    document.getElementById('hint-'+i).style.display='';
+    document.getElementById('hint-'+i).textContent='Select an option above';
+    document.getElementById('reveal-'+i).className='reveal-box';
+    document.getElementById('reveal-'+i).innerHTML='';
+  }
+  document.getElementById('progress-fill').style.width='0%';
+  document.getElementById('progress-count').textContent='0 / 15 answered';
+  document.getElementById('score-summary').style.display='none';
+  document.getElementById('unlock-banner').classList.remove('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+if(localStorage.getItem('ztlab_passed')==='1'){
+  var sn=document.getElementById('sim-nav-link');
+  sn.className='nav-link unlocked';
+  sn.textContent='Simulator ✓';
+  sn.onclick=function(){window.location.href='index.html'};
+}
+
+if(window.location.hash){
+  setTimeout(function(){
+    var el=document.getElementById(window.location.hash.replace('#',''));
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  },100);
+}
+</script>
+</body>
+</html>

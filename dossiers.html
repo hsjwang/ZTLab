@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Dossiers — Zero Trust Network Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12;--surface:#111620;--surface2:#1a2030;
+  --border:rgba(80,180,255,0.12);--border-bright:rgba(80,180,255,0.35);
+  --accent:#4db8ff;--accent2:#00e5a0;--warn:#ffb930;--danger:#ff4d6a;
+  --text:#e8f0ff;--text2:#7a90b0;--text3:#3d5070;
+  --mono:'Share Tech Mono',monospace;--display:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:999}
+a{color:inherit;text-decoration:none}
+.header{border-bottom:1px solid var(--border);padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-wrap:wrap;gap:12px}
+.header-logo{display:flex;align-items:center;gap:14px}
+.logo-mark{width:36px;height:36px;border:1.5px solid var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.logo-mark::before{content:'';position:absolute;width:18px;height:18px;border:1.5px solid var(--accent2);border-radius:3px;transform:rotate(45deg)}
+.header h1{font-family:var(--display);font-size:1.1rem;font-weight:700;letter-spacing:.05em}
+.header h1 span{color:var(--accent)}
+.header-meta{font-size:.7rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase}
+nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nav-link{font-size:.7rem;padding:5px 14px;border-radius:4px;border:1px solid var(--border-bright);color:var(--text2);font-family:var(--display);font-weight:600;letter-spacing:.05em;transition:all .15s;cursor:pointer}
+.nav-link:hover{border-color:var(--accent);color:var(--accent)}
+.nav-link.active{border-color:var(--accent);color:var(--accent);background:rgba(77,184,255,0.08)}
+.nav-link.locked{color:var(--text3);border-color:var(--border);cursor:not-allowed;opacity:.5}
+.nav-link.locked:hover{border-color:var(--border);color:var(--text3)}
+.nav-link.unlocked{border-color:rgba(0,229,160,0.5);color:var(--accent2)}
+.nav-link.unlocked:hover{background:rgba(0,229,160,0.07)}
+
+.page-intro{padding:2rem 2rem 0;max-width:860px}
+.page-intro h2{font-family:var(--display);font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:.6rem}
+.page-intro h2 span{color:var(--accent)}
+.page-intro p{font-size:.8rem;color:var(--text2);line-height:1.8;max-width:680px}
+.mission-box{margin:1.25rem 0;padding:.9rem 1.2rem;background:var(--surface);border:1px solid var(--border-bright);border-radius:6px;border-left:3px solid var(--accent2)}
+.mission-box .mission-label{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:.4rem;font-family:var(--display);font-weight:600}
+.mission-box p{font-size:.78rem;color:var(--text2);line-height:1.7}
+
+.steps-row{display:flex;gap:10px;flex-wrap:wrap;padding-bottom:1rem;margin-top:.75rem}
+.step-chip{font-size:.65rem;padding:4px 12px;border-radius:3px;border:1px solid;font-family:var(--display);font-weight:600;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.step-num{font-size:.6rem;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+.users-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));padding:1.5rem 2rem;gap:1.25rem}
+.dossier-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;animation:fadeIn .3s ease both;opacity:0}
+.dossier-card:nth-child(1){animation-delay:.05s}
+.dossier-card:nth-child(2){animation-delay:.1s}
+.dossier-card:nth-child(3){animation-delay:.15s}
+.dossier-card:nth-child(4){animation-delay:.2s}
+.dossier-card:nth-child(5){animation-delay:.25s}
+.dossier-header{padding:1.1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px}
+.dossier-avatar{width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;flex-shrink:0;font-family:var(--display);border:1.5px solid}
+.dossier-name{font-family:var(--display);font-size:1rem;font-weight:700;color:var(--text)}
+.dossier-role{font-size:.68rem;color:var(--text2);margin-top:2px}
+.clearance-badge{margin-left:auto;flex-shrink:0;text-align:right}
+.clearance-level{font-family:var(--display);font-size:1.1rem;font-weight:800}
+.clearance-label{font-size:.58rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase}
+.dossier-body{padding:1.1rem 1.25rem;flex:1;display:flex;flex-direction:column;gap:1rem}
+.story-section{}
+.story-title{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);font-family:var(--display);font-weight:600;margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.story-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.story-text{font-size:.75rem;color:var(--text2);line-height:1.8}
+.story-text strong{color:var(--text);font-weight:600}
+.clue-section{}
+.clue-title{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--warn);font-family:var(--display);font-weight:600;margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.clue-title::after{content:'';flex:1;height:1px;background:rgba(255,185,48,0.15)}
+.clue-item{display:flex;gap:10px;padding:.5rem .75rem;background:var(--bg);border:1px solid var(--border);border-radius:4px;margin-bottom:6px;align-items:flex-start}
+.clue-num{font-size:.6rem;color:var(--accent);font-family:var(--display);font-weight:700;flex-shrink:0;margin-top:1px;min-width:18px}
+.clue-text{font-size:.72rem;color:var(--text2);line-height:1.6}
+.clue-text strong{color:var(--warn)}
+.clue-text em{color:var(--accent2);font-style:normal}
+.dossier-footer{padding:.75rem 1.25rem;border-top:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:space-between}
+.footer-btn{font-size:.65rem;padding:5px 12px;border-radius:4px;border:1px solid;font-family:var(--display);font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block}
+.access-level-label{font-size:.62rem;color:var(--text3)}
+
+.quiz-cta{margin:.5rem 1.25rem 1rem;padding:.8rem 1rem;background:rgba(77,184,255,0.06);border:1px solid rgba(77,184,255,0.25);border-radius:6px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.quiz-cta-text{font-size:.72rem;color:var(--text2);line-height:1.5}
+.quiz-cta-text strong{color:var(--text);font-weight:600;display:block;margin-bottom:2px}
+.quiz-cta-btn{font-size:.65rem;padding:6px 14px;border-radius:4px;border:1px solid rgba(77,184,255,0.5);color:var(--accent);font-family:var(--display);font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none;white-space:nowrap;flex-shrink:0}
+.quiz-cta-btn:hover{background:rgba(77,184,255,0.1)}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:2px}
+
+.question-section{margin:.25rem 0 .5rem}
+.question-title{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);font-family:var(--display);font-weight:600;margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.question-title::after{content:'';flex:1;height:1px;background:rgba(0,229,160,0.15)}
+.question-item{font-size:.72rem;color:var(--text2);padding:.4rem .75rem;border-left:2px solid var(--accent2);background:rgba(0,229,160,0.03);margin-bottom:5px;line-height:1.6;border-radius:0 4px 4px 0}
+.question-item::before{content:'Q: ';color:var(--accent2);font-weight:600}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-logo">
+    <div class="logo-mark"></div>
+    <div>
+      <h1><span>ZERO TRUST</span> NETWORK LAB</h1>
+      <div class="header-meta">Cybersecurity Education Platform · User Intelligence Dossiers</div>
+    </div>
+  </div>
+  <nav>
+    <a href="dossiers.html" class="nav-link active">Dossiers</a>
+    <a href="glossary.html" class="nav-link">Glossary</a>
+    <a href="quiz.html" class="nav-link" style="border-color:rgba(255,185,48,0.4);color:var(--warn)">Assessment</a>
+    <span id="sim-nav-link" class="nav-link locked" title="Complete the assessment to unlock">Simulator 🔒</span>
+  </nav>
+</header>
+
+<div class="page-intro">
+  <h2>Intelligence <span>Dossiers</span></h2>
+  <p>Read each person's file carefully. The stories contain hidden clues about their security habits and potential vulnerabilities. Use the Glossary to look up any terms you don't recognise — then take the Assessment to unlock the Simulator.</p>
+  <div class="mission-box">
+    <div class="mission-label">Your mission</div>
+    <p>You are a junior analyst at the company's Security Operations Centre (SOC). Read these dossiers, identify clues, look up unfamiliar terms in the Glossary, then take the Assessment. Once you pass, the Simulator unlocks and you can test your theories.</p>
+  </div>
+  <div class="steps-row">
+    <div class="step-chip" style="color:var(--accent);border-color:rgba(77,184,255,0.4)"><span class="step-num" style="background:rgba(77,184,255,0.15);color:var(--accent)">1</span> Read dossiers</div>
+    <div class="step-chip" style="color:var(--text2);border-color:var(--border-bright)"><span class="step-num" style="background:var(--surface2);color:var(--text2)">2</span> Look up terms in Glossary</div>
+    <div class="step-chip" style="color:var(--warn);border-color:rgba(255,185,48,0.4)"><span class="step-num" style="background:rgba(255,185,48,0.12);color:var(--warn)">3</span> Take the Assessment</div>
+    <div class="step-chip" style="color:var(--text3);border-color:var(--border)"><span class="step-num" style="background:var(--surface2);color:var(--text3)">4</span> Unlock Simulator</div>
+  </div>
+</div>
+
+<div class="users-grid">
+
+  <!-- ALICE -->
+  <div class="dossier-card">
+    <div class="dossier-header">
+      <div class="dossier-avatar" style="background:rgba(77,184,255,0.15);border-color:rgba(77,184,255,0.5);color:#4db8ff">AC</div>
+      <div>
+        <div class="dossier-name">Alice Chen</div>
+        <div class="dossier-role">IT Administrator · Infrastructure Team · 6 years at company</div>
+      </div>
+      <div class="clearance-badge">
+        <div class="clearance-level" style="color:#4db8ff">L4</div>
+        <div class="clearance-label">Admin</div>
+      </div>
+    </div>
+    <div class="dossier-body">
+      <div class="story-section">
+        <div class="story-title">Background</div>
+        <div class="story-text">
+          Alice has worked in IT for over a decade and joined TechCorp six years ago as a junior sysadmin. She was promoted to lead administrator two years ago after successfully migrating the company's entire server infrastructure to the cloud. She is well-respected, detail-oriented, and known for always following security procedures — she helped write the company's current password policy herself.
+          <br><br>
+          Alice manages access privileges for all staff, handles network configuration, and is one of only three people with direct access to the production database. She typically works from the London office, arrives early (usually between 07:30 and 08:15), and rarely works past 18:00. She takes two weeks off in August every year to visit family in Hong Kong.
+          <br><br>
+          Last Tuesday, Alice's line manager received a slightly odd email from her saying she was "working from home due to a family emergency" — but Alice had not updated her calendar and had not messaged her team on Slack, which is unusual for her. That same morning, <strong>login attempts were made to the production database from an IP address registered in Lagos, Nigeria</strong>, followed 22 minutes later by a successful login from Alice's usual London broadband connection.
+        </div>
+      </div>
+      <div class="clue-section">
+        <div class="clue-title">Clues to investigate</div>
+        <div class="clue-item"><span class="clue-num">01</span><span class="clue-text">Alice normally logs in from London. A login appeared from <strong>Lagos, Nigeria at 07:52 UTC</strong>, then London at <strong>08:14 UTC</strong>. The distance between the two cities is approximately 5,000 km.</span></div>
+        <div class="clue-item"><span class="clue-num">02</span><span class="clue-text">Alice's "family emergency" email <strong>did not come through the company's mail server</strong> — it was routed through a third-party relay service the IT team does not recognise.</span></div>
+        <div class="clue-item"><span class="clue-num">03</span><span class="clue-text">Three months ago, Alice signed up for a <em>hotel rewards website</em> using her work email. That website suffered a <strong>data breach last month</strong>, and its user database appeared on a dark-web forum.</span></div>
+        <div class="clue-item"><span class="clue-num">04</span><span class="clue-text">Alice uses a <strong>password manager</strong> for most accounts — but admitted to a colleague she <em>"reuses one easy password"</em> for what she calls "throwaway sites."</span></div>
+      </div>
+    </div>
+      <div class="question-section">
+        <div class="question-title">Think about it</div>
+        <div class="question-item">If someone already has Alice's password from the hotel breach, what single thing would stop them accessing the production database?</div>
+        <div class="question-item">Why does Alice's Level 4 access make this situation especially dangerous compared to if the same thing happened to Dave the intern?</div>
+        <div class="question-item">Go to the simulator. Set user to Alice, resource to Production DB, network to Remote, and risk to Impossible Travel. What happens? Now turn MFA off — does anything change?</div>
+      </div>
+    <div class="quiz-cta">
+      <div class="quiz-cta-text"><strong>Ready to analyse Alice's case?</strong>Use the Glossary to look up any terms, then answer the assessment questions.</div>
+      <a href="quiz.html#alice" class="quiz-cta-btn">Answer questions →</a>
+    </div>
+    <div class="dossier-footer">
+      <span class="access-level-label">Clearance: <strong style="color:#4db8ff">LEVEL 4 — ADMIN</strong></span>
+      <span class="footer-btn" style="color:var(--text3);border-color:var(--border);cursor:default">Simulator locked 🔒</span>
+    </div>
+  </div>
+
+  <!-- BOB -->
+  <div class="dossier-card">
+    <div class="dossier-header">
+      <div class="dossier-avatar" style="background:rgba(0,229,160,0.12);border-color:rgba(0,229,160,0.4);color:#00e5a0">BM</div>
+      <div>
+        <div class="dossier-name">Bob Martinez</div>
+        <div class="dossier-role">Senior Developer · Engineering Team · 4 years at company</div>
+      </div>
+      <div class="clearance-badge">
+        <div class="clearance-level" style="color:#00e5a0">L3</div>
+        <div class="clearance-label">Senior</div>
+      </div>
+    </div>
+    <div class="dossier-body">
+      <div class="story-section">
+        <div class="story-title">Background</div>
+        <div class="story-text">
+          Bob is a highly skilled developer who joined TechCorp after four years at a startup. He writes most of the back-end API code that powers the company's main product and has access to the code repository, HR records system, and internal documentation. He is generally trusted and technically sharp.
+          <br><br>
+          However, Bob has a few habits that concern the security team. He frequently works late into the night — it is not unusual to see his commits landing at 01:00 or 02:00 in the morning. He also works from his <strong>personal laptop</strong> roughly half the time, because he finds it faster than his work-issued machine. The IT team has noted that his personal device is not enrolled in the company's mobile device management (MDM) system and is running an <strong>outdated version of macOS</strong> that hasn't received a security patch in over eight months.
+          <br><br>
+          Last week, Bob mentioned to a colleague that he had been "locked out of something important" and had to reset his password three times in two days. He brushed it off as "the authentication system being glitchy." The security team's SIEM logs tell a different story: <strong>847 failed login attempts were recorded against Bob's account over a 4-minute window</strong>, originating from 34 different IP addresses spread across six countries.
+        </div>
+      </div>
+      <div class="clue-section">
+        <div class="clue-title">Clues to investigate</div>
+        <div class="clue-item"><span class="clue-num">01</span><span class="clue-text">847 failed logins in 4 minutes from 34 different IP addresses. A real human can attempt a login roughly <strong>once every 10–15 seconds</strong>. This is clearly automated.</span></div>
+        <div class="clue-item"><span class="clue-num">02</span><span class="clue-text">Bob's username appeared in a <strong>LinkedIn data scrape from 2021</strong> (700 million records). Attackers use LinkedIn usernames to guess corporate email formats.</span></div>
+        <div class="clue-item"><span class="clue-num">03</span><span class="clue-text">His personal MacBook is running <strong>macOS Ventura 13.2</strong> — a version with 14 known unpatched CVEs, including two rated Critical.</span></div>
+        <div class="clue-item"><span class="clue-num">04</span><span class="clue-text">Bob's MFA authenticator app is on his phone — but his phone lock screen is a <strong>4-digit PIN shared with his partner</strong>.</span></div>
+      </div>
+    </div>
+      <div class="question-section">
+        <div class="question-title">Think about it</div>
+        <div class="question-item">Why can't a human be responsible for 847 login attempts in 4 minutes? What does this tell you about who — or what — is attacking Bob's account?</div>
+        <div class="question-item">Bob has MFA set up, but there's still a weakness in his setup. What is it, and how could an attacker exploit it?</div>
+        <div class="question-item">In the simulator, set Bob on his BYOD device accessing the HR Records system after hours. What decision does the policy engine make, and why?</div>
+      </div>
+    <div class="quiz-cta">
+      <div class="quiz-cta-text"><strong>Ready to analyse Bob's case?</strong>Check the Glossary for "credential stuffing" and "MDM" before answering.</div>
+      <a href="quiz.html#bob" class="quiz-cta-btn">Answer questions →</a>
+    </div>
+    <div class="dossier-footer">
+      <span class="access-level-label">Clearance: <strong style="color:#00e5a0">LEVEL 3 — SENIOR</strong></span>
+      <span class="footer-btn" style="color:var(--text3);border-color:var(--border);cursor:default">Simulator locked 🔒</span>
+    </div>
+  </div>
+
+  <!-- CAROL -->
+  <div class="dossier-card">
+    <div class="dossier-header">
+      <div class="dossier-avatar" style="background:rgba(180,120,255,0.12);border-color:rgba(180,120,255,0.4);color:#b478ff">CS</div>
+      <div>
+        <div class="dossier-name">Carol Singh</div>
+        <div class="dossier-role">Data Analyst · Business Intelligence · 2 years at company</div>
+      </div>
+      <div class="clearance-badge">
+        <div class="clearance-level" style="color:#b478ff">L2</div>
+        <div class="clearance-label">Analyst</div>
+      </div>
+    </div>
+    <div class="dossier-body">
+      <div class="story-section">
+        <div class="story-title">Background</div>
+        <div class="story-text">
+          Carol joined TechCorp two years ago straight from university, where she studied Data Science. She is analytical, curious, and has quickly become invaluable to the Business Intelligence team. She produces weekly performance dashboards for senior management and has read-only access to anonymised customer datasets, the internal wiki, and the code repository.
+          <br><br>
+          Carol works almost entirely remotely from her flat in Manchester. She connects to company resources using the company-issued VPN every day without fail. However, she has recently been asking IT if there's a way to access the internal wiki <em>without</em> the VPN because she finds it slow. Last Thursday, IT noticed she had <strong>successfully accessed the internal wiki directly, without the VPN</strong>, using a bookmark from an older browser session that still had a valid but expired authentication token cached.
+          <br><br>
+          More worryingly, last month Carol clicked on a <strong>phishing link</strong> in an email that appeared to come from the company's HR system. She caught herself and reported it to IT — but not before she had entered her work username and <strong>the first half of her password</strong>. The IT team reset her password but did not investigate whether the session had been observed.
+        </div>
+      </div>
+      <div class="clue-section">
+        <div class="clue-title">Clues to investigate</div>
+        <div class="clue-item"><span class="clue-num">01</span><span class="clue-text">Carol accessed the internal wiki <strong>without VPN</strong> using a cached token. The token had technically expired, but the server failed to reject it — a <em>session management vulnerability</em>.</span></div>
+        <div class="clue-item"><span class="clue-num">02</span><span class="clue-text">The phishing email used the domain <strong>hr-techcorp-portal.com</strong> instead of techcorp.com — a technique called <em>typosquatting</em>.</span></div>
+        <div class="clue-item"><span class="clue-num">03</span><span class="clue-text">Carol's MFA is set up via <strong>SMS text message</strong> to her mobile number — the weakest form of MFA, vulnerable to SIM swap attacks.</span></div>
+        <div class="clue-item"><span class="clue-num">04</span><span class="clue-text">Her laptop has <em>auto-lock disabled</em> at Carol's own request because she finds it "annoying when presenting." An unattended laptop is permanently unlocked.</span></div>
+      </div>
+    </div>
+      <div class="question-section">
+        <div class="question-title">Think about it</div>
+        <div class="question-item">Carol accessed the wiki without VPN using an expired token. In a zero trust system, why should every request be re-verified — not just the first login?</div>
+        <div class="question-item">What is the difference between Carol's SMS-based MFA and using an authenticator app or hardware key? Which would protect her better against the phishing attack she experienced?</div>
+        <div class="question-item">In the simulator, test Carol accessing the code repository from a remote connection with no VPN (use "Remote / untrusted"). Does she get access? Should she?</div>
+      </div>
+    <div class="quiz-cta">
+      <div class="quiz-cta-text"><strong>Ready to analyse Carol's case?</strong>Look up "phishing," "session token," and "SIM swap" in the Glossary first.</div>
+      <a href="quiz.html#carol" class="quiz-cta-btn">Answer questions →</a>
+    </div>
+    <div class="dossier-footer">
+      <span class="access-level-label">Clearance: <strong style="color:#b478ff">LEVEL 2 — ANALYST</strong></span>
+      <span class="footer-btn" style="color:var(--text3);border-color:var(--border);cursor:default">Simulator locked 🔒</span>
+    </div>
+  </div>
+
+  <!-- DAVE -->
+  <div class="dossier-card">
+    <div class="dossier-header">
+      <div class="dossier-avatar" style="background:rgba(255,185,48,0.12);border-color:rgba(255,185,48,0.35);color:#ffb930">DK</div>
+      <div>
+        <div class="dossier-name">Dave Kim</div>
+        <div class="dossier-role">Engineering Intern · Onboarding · 3 weeks at company</div>
+      </div>
+      <div class="clearance-badge">
+        <div class="clearance-level" style="color:#ffb930">L1</div>
+        <div class="clearance-label">Intern</div>
+      </div>
+    </div>
+    <div class="dossier-body">
+      <div class="story-section">
+        <div class="story-title">Background</div>
+        <div class="story-text">
+          Dave is a 19-year-old computer science student doing a 10-week summer internship on the engineering team. He is enthusiastic, fast-learning, and eager to prove himself. He has been given access to the internal wiki and read-only access to non-sensitive parts of the codebase. He joined only three weeks ago and his onboarding is still incomplete — his <strong>security awareness training has not yet been signed off</strong>.
+          <br><br>
+          Dave is passionate about cybersecurity and has been teaching himself ethical hacking in his spare time. He has set up a home lab, runs Kali Linux on a spare laptop, and regularly uses tools like Nmap and Metasploit for practice. While exploring the company's internal documentation, Dave stumbled on an old wiki page listing <strong>legacy server IP addresses and a note about an "admin override code" from 2019</strong> that was never deleted.
+          <br><br>
+          Yesterday, IT Security received an automated alert: Dave's account had <strong>attempted to access the production database admin panel</strong> — a resource requiring Level 4 clearance, three levels above his current access. Dave claims he was "just exploring." The EDR system on his work laptop recorded him running a <strong>privilege escalation script</strong> he found on GitHub.
+        </div>
+      </div>
+      <div class="clue-section">
+        <div class="clue-title">Clues to investigate</div>
+        <div class="clue-item"><span class="clue-num">01</span><span class="clue-text">Dave attempted to access the <strong>Production DB admin panel</strong> requiring Level 4. He holds Level 1 — a three-level privilege gap.</span></div>
+        <div class="clue-item"><span class="clue-num">02</span><span class="clue-text">The EDR flagged a <strong>privilege escalation script</strong> executed on his work device. Running escalation tools on company equipment is a serious policy violation.</span></div>
+        <div class="clue-item"><span class="clue-num">03</span><span class="clue-text">Dave found <em>legacy server credentials</em> in old wiki pages that should have been deleted years ago — a <strong>data hygiene failure</strong> by the organisation.</span></div>
+        <div class="clue-item"><span class="clue-num">04</span><span class="clue-text">Dave has not completed his <strong>security awareness training</strong>. Policy states access should only be provisioned after training is signed off.</span></div>
+      </div>
+    </div>
+      <div class="question-section">
+        <div class="question-title">Think about it</div>
+        <div class="question-item">Dave says he was "just exploring." Does intent change whether a security system should block his access? Why or why not?</div>
+        <div class="question-item">The organisation left old credentials on a wiki page. Is this Dave's fault, the company's fault, or both? What should have prevented this?</div>
+        <div class="question-item">In the simulator, set Dave as the user, Production DB as the resource, and Risk to "Privilege escalation attempt." What happens? Can any combination of context settings grant Dave access to the Production DB?</div>
+      </div>
+    <div class="quiz-cta">
+      <div class="quiz-cta-text"><strong>Ready to analyse Dave's case?</strong>Look up "privilege escalation," "least privilege," and "insider threat" in the Glossary.</div>
+      <a href="quiz.html#dave" class="quiz-cta-btn">Answer questions →</a>
+    </div>
+    <div class="dossier-footer">
+      <span class="access-level-label">Clearance: <strong style="color:#ffb930">LEVEL 1 — INTERN</strong></span>
+      <span class="footer-btn" style="color:var(--text3);border-color:var(--border);cursor:default">Simulator locked 🔒</span>
+    </div>
+  </div>
+
+  <!-- VENDOR -->
+  <div class="dossier-card">
+    <div class="dossier-header">
+      <div class="dossier-avatar" style="background:rgba(255,77,106,0.1);border-color:rgba(255,77,106,0.35);color:#ff4d6a">EX</div>
+      <div>
+        <div class="dossier-name">TechVendor Support</div>
+        <div class="dossier-role">External Contractor · Third-party / No company affiliation</div>
+      </div>
+      <div class="clearance-badge">
+        <div class="clearance-level" style="color:#ff4d6a">L0</div>
+        <div class="clearance-label">External</div>
+      </div>
+    </div>
+    <div class="dossier-body">
+      <div class="story-section">
+        <div class="story-title">Background</div>
+        <div class="story-text">
+          "TechVendor Support" is the shared account used by contractors from an external IT support company that TechCorp pays to handle first-line helpdesk tickets. There is no single named individual — the account is shared between an estimated <strong>12 to 15 support agents</strong>, some based in the UK, others working remotely from Eastern Europe and South Asia. TechCorp's procurement team approved the vendor contract two years ago, but the security team was never consulted.
+          <br><br>
+          The shared account has access to the internal wiki for looking up troubleshooting guides. Last month, one of the vendor's agents <strong>left the company</strong> — but because the account is shared, no one changed the password. The vendor's contract states credentials must not be shared outside their team, but TechCorp has <strong>no way to enforce or verify this</strong>.
+          <br><br>
+          This week, the security team noticed the TechVendor account had been used to <strong>access the internal wiki from a TOR exit node</strong> at 02:47 on a Sunday morning. When TechCorp's IT manager called the vendor, they said none of their agents had been working at that time and had <strong>no idea anyone had used the account</strong>.
+        </div>
+      </div>
+      <div class="clue-section">
+        <div class="clue-title">Clues to investigate</div>
+        <div class="clue-item"><span class="clue-num">01</span><span class="clue-text">The account is <strong>shared between 12–15 people</strong> — a <em>shared credential</em>. It is impossible to know which individual performed any given action, destroying accountability.</span></div>
+        <div class="clue-item"><span class="clue-num">02</span><span class="clue-text">An agent left but <strong>the password was never changed</strong> — a <em>stale credential</em>. The departed employee (or anyone they told) still has access.</span></div>
+        <div class="clue-item"><span class="clue-num">03</span><span class="clue-text">Access came from a <strong>confirmed TOR exit node</strong> at 02:47 on a Sunday, when the vendor confirmed no agent was working.</span></div>
+        <div class="clue-item"><span class="clue-num">04</span><span class="clue-text">TechCorp's security team was <strong>not consulted</strong> when the vendor contract was signed — a classic <em>supply chain risk</em>.</span></div>
+      </div>
+    </div>
+      <div class="question-section">
+        <div class="question-title">Think about it</div>
+        <div class="question-item">Why is a shared account so dangerous from a security perspective? What should TechCorp have required from the vendor instead?</div>
+        <div class="question-item">The security team was not involved in approving the vendor contract. Why does a third-party vendor's security matter to TechCorp's own security?</div>
+        <div class="question-item">In the simulator, set the External User on a TOR network, accessing the Internal Wiki (the lowest-clearance resource). Does zero trust grant access? Why, even for a low-sensitivity resource?</div>
+      </div>
+    <div class="quiz-cta">
+      <div class="quiz-cta-text"><strong>Ready to analyse the Vendor case?</strong>Look up "shared credentials," "TOR," and "supply chain risk" in the Glossary.</div>
+      <a href="quiz.html#vendor" class="quiz-cta-btn">Answer questions →</a>
+    </div>
+    <div class="dossier-footer">
+      <span class="access-level-label">Clearance: <strong style="color:#ff4d6a">LEVEL 0 — EXTERNAL</strong></span>
+      <span class="footer-btn" style="color:var(--text3);border-color:var(--border);cursor:default">Simulator locked 🔒</span>
+    </div>
+  </div>
+
+</div>
+
+<div style="padding:1rem 2rem 2.5rem;font-size:.65rem;color:var(--text3);border-top:1px solid var(--border);margin-top:.5rem">
+  All characters, companies, and incidents in these dossiers are entirely fictional and created for educational purposes.
+</div>
+
+<script>
+if(localStorage.getItem('ztlab_passed')==='1'){
+  var el=document.getElementById('sim-nav-link');
+  el.className='nav-link unlocked';
+  el.textContent='Simulator ✓';
+  el.style.cursor='pointer';
+  el.onclick=function(){window.location.href='index.html'};
+  document.querySelectorAll('.dossier-footer .footer-btn').forEach(function(b){
+    b.textContent='Open in simulator →';
+    b.style.color='var(--accent2)';
+    b.style.borderColor='rgba(0,229,160,0.4)';
+    b.style.cursor='pointer';
+    b.onclick=function(){window.location.href='index.html'};
+  });
+}
+</script>
+</body>
+</html>
