@@ -103,6 +103,12 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .score-bar-fill{height:100%;border-radius:2px;transition:width .5s,background .5s}
 .score-hidden{filter:blur(5px);user-select:none;pointer-events:none;transition:filter .3s}
 .score-redacted{color:var(--text3) !important}
+.signals-gate-wrap{position:relative}
+.signals-gate{position:absolute;inset:0;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);background:rgba(10,13,18,0.55);z-index:10;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:none;transition:opacity .3s}
+.signals-gate.hidden{opacity:0;pointer-events:none}
+.signals-gate-icon{font-size:1.4rem;opacity:.5}
+.signals-gate-text{font-size:.68rem;color:var(--text2);font-family:var(--display);font-weight:600;letter-spacing:.05em}
+.signals-gate-sub{font-size:.6rem;color:var(--text3)}
 
 /* ── Decision ── */
 .decision-box{border-radius:7px;padding:1rem 1.1rem;margin-bottom:.75rem;display:flex;align-items:flex-start;gap:12px}
@@ -222,15 +228,22 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
         <div class="ctx-grid" id="ctx-grid"></div>
 
         <div class="col-label">Policy engine — signal evaluation</div>
-        <div class="signals-wrap">
-          <div class="signals-header">
-            <span class="signals-label">Signal analysis</span>
-            <span class="score-text" id="score-display" style="color:var(--text3)">—</span>
+        <div class="signals-gate-wrap">
+          <div class="signals-gate" id="signals-gate">
+            <div class="signals-gate-icon">⬡</div>
+            <div class="signals-gate-text">Signals hidden</div>
+            <div class="signals-gate-sub">Submit your answer to see the evaluation</div>
           </div>
-          <div id="signal-rows"></div>
-          <div class="score-bar-wrap">
-            <div class="score-bar-header"><span>Trust score</span><span id="score-val">—</span></div>
-            <div class="score-bar-track"><div class="score-bar-fill" id="score-bar" style="width:0%"></div></div>
+          <div class="signals-wrap">
+            <div class="signals-header">
+              <span class="signals-label">Signal analysis</span>
+              <span class="score-text" id="score-display" style="color:var(--text3)">—</span>
+            </div>
+            <div id="signal-rows"></div>
+            <div class="score-bar-wrap">
+              <div class="score-bar-header"><span>Trust score</span><span id="score-val">—</span></div>
+              <div class="score-bar-track"><div class="score-bar-fill" id="score-bar" style="width:0%"></div></div>
+            </div>
           </div>
         </div>
 
@@ -474,6 +487,9 @@ function renderScenario(cfg){
     b.style.opacity='';
   });
   document.getElementById('vote-submit').disabled=true;
+  // Show signals gate — hide the evaluation until student votes
+  var gate = document.getElementById('signals-gate');
+  if(gate){ gate.classList.remove('hidden'); }
 
   // Log
   var now = new Date();
@@ -580,7 +596,9 @@ function revealDecision(){
    +'<div class="reveal-desc">'+d.desc+'</div></div></div>'
    +'<div class="verdict-feedback '+feedbackClass+'">'+feedbackHtml+'</div>';
 
-  // Now reveal trust score
+  // Lift the signals gate and reveal trust score
+  var gate = document.getElementById('signals-gate');
+  if(gate){ gate.classList.add('hidden'); }
   var ps = window._pendingScore;
   var pc = window._pendingScoreColor;
   if(ps !== undefined){
