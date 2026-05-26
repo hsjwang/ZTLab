@@ -332,6 +332,12 @@ select:focus,input:focus{border-color:var(--border-bright)}
 // ── Auth ──────────────────────────────────────────────────────────────────
 var ACCESS_CODE = 'ztlab2024';  // Change this before deploying
 
+// State variables — declared here so they are in scope when doLogin() fires
+var mfaOn = true;
+var selectedPreset = null;
+var policies = [];
+var spoilerStates = {score:false, decision:false};
+
 function doLogin(){
   var v = document.getElementById('pw-input').value;
   if(v === ACCESS_CODE){
@@ -578,9 +584,6 @@ var PRESET_GUIDES = {
   }
 };
 
-var mfaOn = true;
-var selectedPreset = null;
-var policies = [];
 
 function init(){
   renderPresets();
@@ -809,7 +812,6 @@ function updatePreview(){
 function row(key, val, color){
   return '<div class="scenario-row"><span class="scenario-key">'+key+'</span><span class="scenario-val" style="color:'+color+'">'+val+'</span></div>';
 }
-var spoilerStates={score:false, decision:false};
 function spoilerRow(id, key, val, color){
   var shown = spoilerStates[id];
   return '<div class="spoiler-row">'
