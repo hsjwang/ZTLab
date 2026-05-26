@@ -159,6 +159,28 @@ select:focus,input:focus{border-color:var(--border-bright)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .fade-in{animation:fadeIn .2s ease}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:2px}
+
+/* ── Spoiler rows (trust score / expected decision) ── */
+.spoiler-row{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid var(--border);font-size:.72rem}
+.spoiler-row:last-child{border-bottom:none}
+.spoiler-key{color:var(--text3);flex-shrink:0}
+.spoiler-val-wrap{display:flex;align-items:center;gap:8px}
+.spoiler-hidden{filter:blur(6px);user-select:none;pointer-events:none;transition:filter .3s;min-width:60px;text-align:right}
+.spoiler-shown{filter:none;transition:filter .3s;text-align:right}
+.spoiler-toggle{font-size:.58rem;padding:2px 9px;border:1px solid var(--border-bright);border-radius:3px;color:var(--text3);cursor:pointer;background:transparent;font-family:var(--display);font-weight:600;transition:all .15s;white-space:nowrap;flex-shrink:0;line-height:1.4}
+.spoiler-toggle:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── Guide questions — expandable follow-ups ── */
+.guide-q-wrap{background:var(--bg);border:1px solid rgba(77,184,255,0.15);border-radius:4px;margin-bottom:6px;overflow:hidden}
+.guide-q-main{display:flex;gap:9px;padding:.5rem .75rem;align-items:flex-start;cursor:default}
+.guide-q-num{font-size:.6rem;color:var(--accent);font-family:var(--display);font-weight:700;flex-shrink:0;margin-top:3px;min-width:16px}
+.guide-q-text{font-size:.72rem;color:var(--text2);line-height:1.5;flex:1}
+.guide-followup-toggle{font-size:.58rem;padding:2px 8px;border:1px solid var(--border);border-radius:3px;color:var(--text3);cursor:pointer;background:transparent;font-family:var(--display);font-weight:600;white-space:nowrap;flex-shrink:0;margin-top:1px;transition:all .15s;line-height:1.4}
+.guide-followup-toggle:hover{border-color:rgba(77,184,255,0.4);color:var(--accent)}
+.guide-followup-toggle.open{border-color:rgba(77,184,255,0.4);color:var(--accent)}
+.guide-followup-body{display:none;padding:.45rem .75rem .55rem calc(.75rem + 25px);border-top:1px solid var(--border);background:rgba(0,0,0,0.15)}
+.guide-followup-body.open{display:block}
+.guide-followup-text{font-size:.7rem;color:var(--text3);line-height:1.6;font-style:italic}
 </style>
 </head>
 <body>
@@ -341,7 +363,7 @@ var spoilerStates = {score:false, decision:false};
 function doLogin(){
   var v = document.getElementById('pw-input').value;
   if(v === ACCESS_CODE){
-    sessionStorage.setItem('zt_instructor','1');
+    localStorage.setItem('zt_instructor','1');
     document.getElementById('login-screen').style.display='none';
     document.getElementById('main-panel').style.display='block';
     init();
@@ -353,7 +375,7 @@ function doLogin(){
   }
 }
 function doLogout(){
-  sessionStorage.removeItem('zt_instructor');
+  localStorage.removeItem('zt_instructor');
   location.reload();
 }
 // ── Data ──────────────────────────────────────────────────────────────────
@@ -764,13 +786,17 @@ function updatePreview(){
   var guideEl = document.getElementById('instructor-guide-wrap');
   if(preset && guide){
     var qHtml = guide.questions.map(function(item, i){
-      return '<div class="guide-q">'
+      var qid = 'gq-'+i;
+      return '<div class="guide-q-wrap">'
+        +'<div class="guide-q-main">'
         +'<span class="guide-q-num">'+(i+1)+'.</span>'
-        +'<div><div class="guide-q-text">'+item.q+'</div>'
-        +'<div class="guide-followup" style="margin-top:4px">'
-        +'<span class="guide-followup-label">↳ If...</span>'
-        +'<span class="guide-followup-text">'+item.followup+'</span>'
-        +'</div></div></div>';
+        +'<span class="guide-q-text">'+item.q+'</span>'
+        +'<button class="guide-followup-toggle" data-qid="'+qid+'" title="Show follow-up prompt">&#8618; If...</button>'
+        +'</div>'
+        +'<div class="guide-followup-body" id="body-'+qid+'">'
+        +'<div class="guide-followup-text">'+item.followup+'</div>'
+        +'</div>'
+        +'</div>';
     }).join('');
     guideEl.innerHTML =
       '<div class="guide-section">'
@@ -817,14 +843,38 @@ function spoilerRow(id, key, val, color){
   return '<div class="spoiler-row">'
     +'<span class="spoiler-key">'+key+'</span>'
     +'<span class="spoiler-val-wrap">'
-    +'<span class="spoiler-val '+(shown?'spoiler-shown':'spoiler-hidden')+'" id="spoiler-val-'+id+'" style="color:'+color+'">'+val+'</span>'
-    +'<button class="spoiler-toggle" onclick="toggleSpoiler(&apos;'+id+'&apos;)">'+(shown?'Hide':'Reveal')+'</button>'
+    +'<span class="'+(shown?'spoiler-shown':'spoiler-hidden')+'" id="spoiler-val-'+id+'" style="color:'+color+'">'+val+'</span>'
+    +'<button class="spoiler-toggle" data-sid="'+id+'">'+(shown?'Hide':'Reveal')+'</button>'
     +'</span></div>';
 }
 function toggleSpoiler(id){
   spoilerStates[id] = !spoilerStates[id];
   updatePreview();
 }
+// Event delegation for spoiler toggle buttons
+document.addEventListener('click', function(e){
+  if(e.target && e.target.classList.contains('spoiler-toggle')){
+    var sid = e.target.getAttribute('data-sid');
+    if(sid) toggleSpoiler(sid);
+  }
+});
+function toggleFollowup(qid){
+  var body = document.getElementById('body-'+qid);
+  var btn  = document.querySelector('[data-qid="'+qid+'"]');
+  if(!body || !btn) return;
+  var isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+  btn.innerHTML = isOpen ? '&#8618; If...' : '&#8593; Hide';
+}
+
+// Event delegation for dynamically-rendered followup buttons
+document.addEventListener('click', function(e){
+  if(e.target && e.target.classList.contains('guide-followup-toggle')){
+    var qid = e.target.getAttribute('data-qid');
+    if(qid) toggleFollowup(qid);
+  }
+});
 
 function pushScenario(){
   var cfg = getConfig();
@@ -852,7 +902,7 @@ function copyUrl(){
 }
 
 function autoLogin(){
-  if(sessionStorage.getItem('zt_instructor')==='1'){
+  if(localStorage.getItem('zt_instructor')==='1'){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('main-panel').style.display='block';
     init();
