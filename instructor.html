@@ -818,7 +818,7 @@ function spoilerRow(id, key, val, color){
     +'<span class="spoiler-key">'+key+'</span>'
     +'<span class="spoiler-val-wrap">'
     +'<span class="spoiler-val '+(shown?'spoiler-shown':'spoiler-hidden')+'" id="spoiler-val-'+id+'" style="color:'+color+'">'+val+'</span>'
-    +'<button class="spoiler-toggle" onclick="toggleSpoiler(''+id+'')">'+(shown?'Hide':'Reveal')+'</button>'
+    +'<button class="spoiler-toggle" onclick="toggleSpoiler(&apos;'+id+'&apos;)">'+(shown?'Hide':'Reveal')+'</button>'
     +'</span></div>';
 }
 function toggleSpoiler(id){
