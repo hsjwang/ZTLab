@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instructor Panel — Zero Trust Network Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12;--surface:#111620;--surface2:#1a2030;
+  --border:rgba(80,180,255,0.12);--border-bright:rgba(80,180,255,0.35);
+  --accent:#4db8ff;--accent2:#00e5a0;--warn:#ffb930;--danger:#ff4d6a;
+  --text:#e8f0ff;--text2:#7a90b0;--text3:#3d5070;
+  --mono:'Share Tech Mono',monospace;--display:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:999}
+
+/* ── Login screen ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:20px}
+.login-box{background:var(--surface);border:1px solid var(--border-bright);border-radius:10px;padding:2.5rem;width:340px}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem}
+.logo-mark{width:32px;height:32px;border:1.5px solid var(--accent);border-radius:6px;position:relative;flex-shrink:0}
+.logo-mark::before{content:'';position:absolute;width:16px;height:16px;border:1.5px solid var(--accent2);border-radius:3px;transform:rotate(45deg);top:6px;left:6px}
+.login-title{font-family:var(--display);font-size:.9rem;font-weight:700}
+.login-title span{color:var(--accent)}
+.login-label{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:.4rem;display:block;font-family:var(--display);font-weight:600}
+.login-input{width:100%;background:var(--surface2);border:1px solid var(--border-bright);border-radius:5px;padding:.6rem .8rem;font-size:.8rem;font-family:var(--mono);color:var(--text);outline:none;margin-bottom:1rem}
+.login-input:focus{border-color:var(--accent)}
+.login-btn{width:100%;padding:.65rem;background:rgba(77,184,255,0.1);border:1px solid var(--accent);border-radius:5px;color:var(--accent);font-family:var(--display);font-weight:700;font-size:.8rem;cursor:pointer;transition:all .15s}
+.login-btn:hover{background:rgba(77,184,255,0.18)}
+.login-error{font-size:.7rem;color:var(--danger);margin-top:.5rem;display:none;text-align:center}
+.login-hint{font-size:.65rem;color:var(--text3);text-align:center;margin-top:.75rem}
+
+/* ── Main panel ── */
+#main-panel{display:none}
+.header{border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-wrap:wrap;gap:10px}
+.header-left{display:flex;align-items:center;gap:12px}
+.header h1{font-family:var(--display);font-size:1rem;font-weight:700}
+.header h1 span{color:var(--warn)}
+.header-badge{font-size:.6rem;padding:2px 8px;border-radius:3px;border:1px solid rgba(255,185,48,0.4);color:var(--warn);font-family:var(--display);font-weight:600;letter-spacing:.06em}
+.header-right{display:flex;align-items:center;gap:8px}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--accent2);animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.hdr-btn{font-size:.65rem;padding:4px 12px;border-radius:4px;border:1px solid var(--border-bright);color:var(--text2);font-family:var(--display);font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none;background:transparent}
+.hdr-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hdr-btn.danger{border-color:rgba(255,77,106,0.35);color:var(--danger)}
+.hdr-btn.danger:hover{background:rgba(255,77,106,0.08)}
+
+/* ── Layout ── */
+.layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 62px)}
+.left-col{border-right:1px solid var(--border);overflow-y:auto;background:var(--surface)}
+.right-col{overflow-y:auto;background:var(--bg)}
+
+.col-hdr{padding:.6rem 1.1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--surface)}
+.col-hdr-num{font-size:.6rem;color:var(--accent);border:1px solid rgba(77,184,255,0.3);padding:1px 5px;border-radius:3px;font-family:var(--display);font-weight:600}
+.col-hdr-label{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:var(--display);font-weight:600}
+
+/* ── Preset scenarios ── */
+.sec-label{font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);padding:.65rem 1.1rem .3rem;font-family:var(--display);font-weight:600}
+.preset-card{margin:.35rem .75rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s;overflow:hidden}
+.preset-card:hover{border-color:var(--border-bright)}
+.preset-card.selected{border-color:var(--warn);background:rgba(255,185,48,0.04)}
+.preset-head{padding:.55rem .8rem;display:flex;align-items:center;gap:8px}
+.preset-icon{font-size:.85rem;flex-shrink:0}
+.preset-name{font-size:.75rem;font-weight:600;color:var(--text);font-family:var(--display)}
+.preset-tag{font-size:.55rem;padding:1px 6px;border-radius:2px;border:1px solid;margin-left:auto;font-family:var(--display);font-weight:600;flex-shrink:0;white-space:nowrap}
+.preset-desc{font-size:.68rem;color:var(--text2);padding:0 .8rem .55rem;line-height:1.5}
+.preset-why{font-size:.65rem;color:var(--text3);padding:0 .8rem .55rem;line-height:1.5;border-top:1px solid var(--border);padding-top:.45rem;margin-top:.1rem}
+
+/* ── Custom config ── */
+.config-block{padding:.6rem 1.1rem;border-bottom:1px solid var(--border)}
+.config-label{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:.4rem;font-family:var(--display);font-weight:600}
+select,input[type=text]{width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:5px 7px;font-size:.75rem;font-family:var(--mono);outline:none;cursor:pointer}
+select:focus,input:focus{border-color:var(--border-bright)}
+.mfa-row{display:flex;align-items:center;gap:10px}
+.tog-track{width:34px;height:18px;border-radius:9px;background:var(--surface2);border:1px solid var(--border-bright);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.tog-track.on{background:rgba(0,229,160,0.25);border-color:var(--accent2)}
+.tog-thumb{position:absolute;width:12px;height:12px;border-radius:50%;top:2px;left:2px;background:var(--text3);transition:left .2s,background .2s}
+.tog-track.on .tog-thumb{left:18px;background:var(--accent2)}
+.mfa-text{font-size:.75rem;color:var(--text2)}
+
+/* ── Talking points editor ── */
+.tp-area{width:100%;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-size:.72rem;font-family:var(--mono);outline:none;resize:vertical;min-height:72px;line-height:1.5}
+.tp-area:focus{border-color:var(--border-bright)}
+.char-count{font-size:.58rem;color:var(--text3);text-align:right;margin-top:2px}
+
+/* ── Company policy editor ── */
+.policy-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:5px}
+.policy-row input[type=text]{flex:1}
+.policy-del{width:22px;height:22px;flex-shrink:0;background:transparent;border:1px solid rgba(255,77,106,0.3);border-radius:3px;color:var(--danger);cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s}
+.policy-del:hover{background:rgba(255,77,106,0.1)}
+.add-policy-btn{font-size:.65rem;padding:4px 10px;border:1px dashed var(--border-bright);border-radius:3px;color:var(--text3);cursor:pointer;background:transparent;width:100%;margin-top:4px;font-family:var(--display);font-weight:600;transition:all .15s}
+.add-policy-btn:hover{color:var(--accent);border-color:var(--accent)}
+
+/* ── Push button ── */
+.push-wrap{padding:.75rem 1.1rem;border-top:1px solid var(--border);background:var(--surface);position:sticky;bottom:0}
+.push-btn{width:100%;padding:.7rem;background:rgba(255,185,48,0.1);border:1px solid var(--warn);border-radius:5px;color:var(--warn);font-family:var(--display);font-weight:700;font-size:.8rem;cursor:pointer;transition:all .2s;letter-spacing:.04em}
+.push-btn:hover{background:rgba(255,185,48,0.18)}
+.push-btn.pushed{background:rgba(0,229,160,0.1);border-color:var(--accent2);color:var(--accent2)}
+.push-status{font-size:.62rem;color:var(--text3);text-align:center;margin-top:.4rem;min-height:14px}
+
+/* ── Right col — live preview ── */
+.preview-wrap{padding:1.25rem 1.5rem}
+.preview-title{font-family:var(--display);font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.3rem}
+.preview-sub{font-size:.72rem;color:var(--text2);line-height:1.6;margin-bottom:1rem}
+.preview-frame-wrap{border:1px solid var(--border-bright);border-radius:8px;overflow:hidden;background:var(--surface)}
+.preview-frame-bar{padding:.5rem .9rem;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:.65rem;color:var(--text3)}
+.frame-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* scenario summary card */
+.scenario-card{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.9rem 1rem;margin-bottom:1rem}
+.scenario-row{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid var(--border);font-size:.72rem}
+.scenario-row:last-child{border-bottom:none}
+.scenario-key{color:var(--text3)}
+.scenario-val{color:var(--text);font-weight:600;font-family:var(--display)}
+.scenario-val.red{color:var(--danger)}
+.scenario-val.amber{color:var(--warn)}
+.scenario-val.green{color:var(--accent2)}
+
+/* policy list preview */
+.policy-preview{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.75rem 1rem;margin-bottom:1rem}
+.policy-preview-title{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-family:var(--display);font-weight:600;margin-bottom:.5rem}
+.policy-preview-item{font-size:.72rem;color:var(--text2);padding:.3rem 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.policy-preview-item:last-child{border-bottom:none}
+.policy-bullet{color:var(--danger);flex-shrink:0;font-size:.65rem;margin-top:1px}
+
+/* talking points preview */
+.tp-preview{background:var(--bg);border:1px solid rgba(77,184,255,0.2);border-radius:6px;padding:.75rem 1rem;margin-bottom:1rem}
+.tp-preview-title{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-family:var(--display);font-weight:600;margin-bottom:.5rem}
+.tp-preview-text{font-size:.72rem;color:var(--text2);line-height:1.7;white-space:pre-wrap}
+
+/* ── Instructor discussion guide ── */
+.guide-section{margin-bottom:1.1rem}
+.guide-section-title{font-size:.6rem;letter-spacing:.13em;text-transform:uppercase;font-family:var(--display);font-weight:600;margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.guide-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.guide-opening{background:var(--surface2);border-left:2px solid var(--accent);border-radius:0 5px 5px 0;padding:.6rem .85rem;font-size:.72rem;color:var(--text2);line-height:1.7;margin-bottom:.5rem;white-space:pre-wrap}
+.guide-q{display:flex;gap:9px;padding:.45rem .75rem;background:var(--bg);border:1px solid rgba(77,184,255,0.15);border-radius:4px;margin-bottom:4px;align-items:flex-start}
+.guide-q-num{font-size:.6rem;color:var(--accent);font-family:var(--display);font-weight:700;flex-shrink:0;margin-top:2px;min-width:16px}
+.guide-q-text{font-size:.72rem;color:var(--text2);line-height:1.5}
+.guide-followup{display:flex;gap:9px;padding:.4rem .75rem;background:rgba(0,0,0,0.15);border:1px solid var(--border);border-radius:4px;margin-bottom:4px;align-items:flex-start}
+.guide-followup-label{font-size:.58rem;color:var(--text3);font-family:var(--display);font-weight:600;flex-shrink:0;margin-top:2px;min-width:28px;text-transform:uppercase;letter-spacing:.05em}
+.guide-followup-text{font-size:.7rem;color:var(--text3);line-height:1.5;font-style:italic}
+.guide-tip{background:rgba(0,229,160,0.05);border:1px solid rgba(0,229,160,0.2);border-radius:4px;padding:.5rem .75rem;margin-top:.4rem}
+.guide-tip-label{font-size:.57rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent2);font-family:var(--display);font-weight:600;margin-bottom:.25rem}
+.guide-tip-text{font-size:.7rem;color:var(--text2);line-height:1.5}
+.instructor-only-banner{background:rgba(255,185,48,0.07);border:1px solid rgba(255,185,48,0.25);border-radius:5px;padding:.5rem .75rem;margin-bottom:.85rem;font-size:.68rem;color:var(--warn);line-height:1.5;display:flex;align-items:center;gap:7px}
+
+/* classroom URL */
+.url-box{background:var(--surface2);border:1px solid var(--border-bright);border-radius:5px;padding:.6rem .9rem;display:flex;align-items:center;gap:10px;margin-top:1rem}
+.url-text{font-size:.72rem;color:var(--accent2);font-family:var(--mono);flex:1;word-break:break-all}
+.copy-btn{font-size:.62rem;padding:3px 10px;border:1px solid rgba(0,229,160,0.4);border-radius:3px;color:var(--accent2);cursor:pointer;background:transparent;font-family:var(--display);font-weight:600;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.copy-btn:hover{background:rgba(0,229,160,0.08)}
+
+.divider{height:1px;background:var(--border);margin:.5rem 0}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.fade-in{animation:fadeIn .2s ease}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════ LOGIN SCREEN ══════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-mark"></div>
+      <div class="login-title"><span>ZERO TRUST</span> LAB</div>
+    </div>
+    <span class="login-label">Instructor access code</span>
+    <input class="login-input" type="password" id="pw-input" placeholder="Enter access code..." onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Authenticate</button>
+    <div class="login-error" id="login-error">Incorrect access code. Try again.</div>
+    <div class="login-hint">This page is restricted to instructors only.<br>Students should use the main lab URL.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ MAIN PANEL ══════════════════════════ -->
+<div id="main-panel">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-mark"></div>
+      <div>
+        <h1><span>INSTRUCTOR</span> CONTROL PANEL</h1>
+      </div>
+      <span class="header-badge">RESTRICTED</span>
+    </div>
+    <div class="header-right">
+      <div class="pulse"></div>
+      <span style="font-size:.65rem;color:var(--text2)">Classroom view ready</span>
+      <a href="classroom.html" target="_blank" class="hdr-btn">Open classroom view ↗</a>
+      <button class="hdr-btn danger" onclick="doLogout()">Log out</button>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- LEFT: Config controls -->
+    <div class="left-col">
+      <div class="col-hdr"><span class="col-hdr-num">01</span><span class="col-hdr-label">Preset scenarios</span></div>
+
+      <div class="sec-label">Seemingly benign — but blocked</div>
+      <div id="preset-list"></div>
+
+      <div class="col-hdr" style="margin-top:.5rem"><span class="col-hdr-num">02</span><span class="col-hdr-label">Custom configuration</span></div>
+
+      <div class="config-block">
+        <div class="config-label">User identity</div>
+        <select id="cfg-user">
+          <option value="alice">Alice Chen — IT Admin (L4)</option>
+          <option value="bob">Bob Martinez — Senior Developer (L3)</option>
+          <option value="carol">Carol Singh — Data Analyst (L2)</option>
+          <option value="dave">Dave Kim — Intern (L1)</option>
+          <option value="ext">TechVendor Support — External (L0)</option>
+        </select>
+      </div>
+      <div class="config-block">
+        <div class="config-label">Target resource</div>
+        <select id="cfg-res">
+          <option value="prod">Production Database (L4 required)</option>
+          <option value="hr">HR Records System (L3 required)</option>
+          <option value="code">Code Repository (L2 required)</option>
+          <option value="docs">Internal Wiki (L1 required)</option>
+          <option value="pub">Public Web Portal (L0)</option>
+        </select>
+      </div>
+      <div class="config-block">
+        <div class="config-label">Device posture</div>
+        <select id="cfg-device">
+          <option value="managed">Managed — corp enrolled &amp; MDM compliant</option>
+          <option value="byod">BYOD — personal, unmanaged device</option>
+          <option value="unknown">Unknown — no device data</option>
+        </select>
+      </div>
+      <div class="config-block">
+        <div class="config-label">Network location</div>
+        <select id="cfg-network">
+          <option value="corp">Corporate network</option>
+          <option value="vpn">VPN encrypted tunnel</option>
+          <option value="remote">Remote / untrusted</option>
+          <option value="tor">Anonymizer / TOR exit node</option>
+        </select>
+      </div>
+      <div class="config-block">
+        <div class="config-label">Time of access</div>
+        <select id="cfg-time">
+          <option value="business">Business hours (09:00–17:00)</option>
+          <option value="after">After hours (17:00–23:00)</option>
+          <option value="weekend">Weekend / holiday</option>
+        </select>
+      </div>
+      <div class="config-block">
+        <div class="config-label">Behavioural risk signal</div>
+        <select id="cfg-risk">
+          <option value="none">None detected</option>
+          <option value="geo">Impossible travel</option>
+          <option value="brute">Brute force pattern</option>
+          <option value="cred">Leaked credential (HaveIBeenPwned)</option>
+          <option value="priv">Privilege escalation attempt</option>
+        </select>
+      </div>
+      <div class="config-block">
+        <div class="mfa-row">
+          <div class="tog-track on" id="cfg-mfa-track" onclick="toggleMfa()"><div class="tog-thumb"></div></div>
+          <span class="mfa-text">MFA completed</span>
+        </div>
+      </div>
+
+      <div class="col-hdr"><span class="col-hdr-num">03</span><span class="col-hdr-label">Company policy context</span></div>
+      <div class="config-block">
+        <div class="config-label">Policies shown to students</div>
+        <div id="policy-rows"></div>
+        <button class="add-policy-btn" onclick="addPolicy()">+ Add policy rule</button>
+      </div>
+
+      <div class="col-hdr"><span class="col-hdr-num">04</span><span class="col-hdr-label">Custom discussion prompt</span></div>
+      <div class="config-block">
+        <div class="config-label">Opening context shown to students on the classroom view</div>
+        <textarea class="tp-area" id="cfg-tp" oninput="updatePreview();updateCharCount()" placeholder="e.g. Why is this access being denied even though the employee is legitimate and their credentials are correct?&#10;&#10;What would need to change for access to be granted?"></textarea>
+        <div class="char-count" id="tp-char">0 characters</div>
+      </div>
+
+      <div class="push-wrap">
+        <button class="push-btn" id="push-btn" onclick="pushScenario()">⬆ Push to classroom view</button>
+        <div class="push-status" id="push-status"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Preview -->
+    <div class="right-col">
+      <div class="preview-wrap">
+        <div class="preview-title">Live scenario preview</div>
+        <div class="preview-sub">This is what students will see when you push. Configure on the left and click "Push to classroom view" — the classroom page updates in real time.</div>
+
+        <div class="scenario-card" id="preview-card"></div>
+
+        <div class="policy-preview" id="preview-policies">
+          <div class="policy-preview-title">Company policies</div>
+          <div id="preview-policy-list"></div>
+        </div>
+
+        <div class="tp-preview" id="preview-tp-wrap" style="display:none">
+          <div class="tp-preview-title">Opening context shown to students (classroom view)</div>
+          <div class="tp-preview-text" id="preview-tp"></div>
+        </div>
+
+        <div class="divider"></div>
+        <div style="font-size:.65rem;color:var(--text3);margin-bottom:.5rem">Classroom view URL — share with students after pushing:</div>
+        <div class="url-box">
+          <span class="url-text" id="classroom-url"></span>
+          <button class="copy-btn" onclick="copyUrl()">Copy</button>
+        </div>
+
+        <div style="margin-top:1.25rem">
+          <div class="instructor-only-banner">🔒 Everything below is visible to the instructor only — not shown to students</div>
+
+          <div id="instructor-guide-wrap">
+            <div style="font-size:.7rem;color:var(--text3);line-height:1.7;font-style:italic">
+              Select a preset scenario to see the instructor discussion guide, or push a custom scenario to generate generic discussion prompts.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Auth ──────────────────────────────────────────────────────────────────
+var ACCESS_CODE = 'ztlab2024';  // Change this before deploying
+
+function doLogin(){
+  var v = document.getElementById('pw-input').value;
+  if(v === ACCESS_CODE){
+    sessionStorage.setItem('zt_instructor','1');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-panel').style.display='block';
+    init();
+  } else {
+    var err = document.getElementById('login-error');
+    err.style.display='block';
+    setTimeout(function(){err.style.display='none'},3000);
+    document.getElementById('pw-input').value='';
+  }
+}
+function doLogout(){
+  sessionStorage.removeItem('zt_instructor');
+  location.reload();
+}
+if(sessionStorage.getItem('zt_instructor')==='1'){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('main-panel').style.display='block';
+}
+
+// ── Data ──────────────────────────────────────────────────────────────────
+var USERS={
+  alice:{name:'Alice Chen',role:'IT Administrator',level:4,initials:'AC',tc:'#4db8ff'},
+  bob:{name:'Bob Martinez',role:'Senior Developer',level:3,initials:'BM',tc:'#00e5a0'},
+  carol:{name:'Carol Singh',role:'Data Analyst',level:2,initials:'CS',tc:'#b478ff'},
+  dave:{name:'Dave Kim',role:'Intern',level:1,initials:'DK',tc:'#ffb930'},
+  ext:{name:'TechVendor Support',role:'External Vendor',level:0,initials:'EX',tc:'#ff4d6a'}
+};
+var RESOURCES={
+  prod:{name:'Production Database',req:4},
+  hr:{name:'HR Records System',req:3},
+  code:{name:'Code Repository',req:2},
+  docs:{name:'Internal Wiki',req:1},
+  pub:{name:'Public Web Portal',req:0}
+};
+
+// ── Presets ───────────────────────────────────────────────────────────────
+// Each preset: a scenario that LOOKS benign but is blocked for a real policy reason.
+var PRESETS = [
+  {
+    id:'wfh_senior',
+    icon:'🏠',
+    name:'Legitimate WFH — but blocked',
+    tag:'DEVICE',tagColor:'rgba(255,185,48,0.4)',tagText:'var(--warn)',
+    desc:"Bob is a trusted senior developer working from home on a Friday afternoon. He's done this dozens of times. His credentials are correct, MFA is complete — but he's on his personal laptop today.",
+    user:'bob', res:'code', device:'byod', network:'vpn', time:'business', risk:'none', mfa:true,
+    policies:[
+      'All access to source code repositories requires a corporate-managed, MDM-enrolled device.',
+      'Personal (BYOD) devices may not access resources classified INTERNAL or above.',
+      'Device enrolment in Microsoft Intune is mandatory before code repository access is provisioned.'
+    ],
+    tp:"Bob has done everything right — he authenticated, completed MFA, and connected via VPN. He is a trusted employee with the correct privilege level.\n\nAsk students: Why is he still being blocked? Is this fair? What would Bob need to do to get access? Is the policy protecting something specific, or is it just bureaucracy?",
+    notes:"Key teaching moment: device posture is a mandatory zero trust signal independent of identity. A compromised personal device could silently exfiltrate code even if Bob himself is trustworthy. The policy protects the codebase from the device, not from Bob."
+  },
+  {
+    id:'after_hours_admin',
+    icon:'🌙',
+    name:'Admin works late — elevated monitoring',
+    tag:'TIME',tagColor:'rgba(180,120,255,0.3)',tagText:'#b478ff',
+    desc:"Alice is the IT admin and often works late to avoid disrupting daytime operations. Tonight at 21:00 she logs in from the office on a managed device to run a scheduled maintenance task on the production database.",
+    user:'alice', res:'prod', device:'managed', network:'corp', time:'after', risk:'none', mfa:true,
+    policies:[
+      'Production database access outside business hours triggers enhanced session monitoring.',
+      'All after-hours admin activity is logged to a tamper-proof audit trail and reviewed next business day.',
+      'Access is permitted but session is elevated to Tier-1 monitoring with 5-minute re-authentication intervals.'
+    ],
+    tp:"Access is technically granted here — but with restrictions and continuous monitoring. This is zero trust's 'restrict, don't just block' in action.\n\nAsk students: Is it right to treat Alice differently at 21:00 vs 09:00, even though she's the same person on the same device? What risks does after-hours admin access introduce that don't exist during the day?",
+    notes:"This scenario demonstrates that zero trust isn't binary — it can grant access with conditions. The time signal reduces trust score, triggering elevated monitoring rather than an outright block. Good discussion: insider threats are statistically more likely after hours when oversight is lower."
+  },
+  {
+    id:'remote_analyst',
+    icon:'☕',
+    name:'Analyst in a coffee shop — partial block',
+    tag:'NETWORK',tagColor:'rgba(77,184,255,0.3)',tagText:'var(--accent)',
+    desc:"Carol is a data analyst who occasionally works from a local café. She forgot to turn on her VPN before opening her laptop. Her managed device is fully compliant and her MFA is active — she's just on public wifi.",
+    user:'carol', res:'code', device:'managed', network:'remote', time:'business', risk:'none', mfa:true,
+    policies:[
+      'Access to INTERNAL-classified resources requires either a corporate network connection or an active VPN tunnel.',
+      'Unencrypted public networks (cafés, hotels, airports) are classified as untrusted egress.',
+      'Users on untrusted networks must connect via VPN before accessing any resource above PUBLIC classification.'
+    ],
+    tp:"Carol hasn't done anything wrong. Her device is managed, her MFA is on, she's a legitimate employee in the middle of the working day.\n\nAsk students: What specific risk does the café wifi introduce that the VPN would solve? If Carol's device is encrypted and her session is encrypted via HTTPS, why does the network still matter to zero trust?",
+    notes:"Key concept: network-level visibility and traffic inspection. On untrusted wifi, an attacker can perform SSL stripping or intercept DNS. Even with HTTPS, the network layer matters because it affects session attributability and allows man-in-the-middle positioning. VPN restores that trust layer."
+  },
+  {
+    id:'new_joiner',
+    icon:'🪪',
+    name:'New employee — first day, no MDM yet',
+    tag:'ONBOARDING',tagColor:'rgba(0,229,160,0.3)',tagText:'var(--accent2)',
+    desc:"A new developer joined today. IT provisioned their account, their credentials are active, and they've set up MFA. But their corporate laptop hasn't been through MDM enrolment yet — it's still in setup. They try to access the code repository to get started.",
+    user:'bob', res:'code', device:'unknown', network:'corp', time:'business', risk:'none', mfa:true,
+    policies:[
+      'Device MDM enrolment must be completed before access to any resource above PUBLIC is provisioned.',
+      'IT must issue and configure the corporate device before the employee account is activated for INTERNAL resources.',
+      'Incomplete onboarding is flagged in the HR system and access is held pending device registration.'
+    ],
+    tp:"This person is 100% legitimate. They have valid credentials, completed MFA, and are sitting in the office on their first day eager to contribute.\n\nAsk students: Is blocking a new employee on their first day good security or excessive friction? Who is responsible for this gap — IT, the employee, or the policy itself? How should a well-run onboarding process prevent this situation?",
+    notes:"This is a very common real-world pain point. The friction is intentional — an unregistered device has no posture data. But it highlights a process failure, not a security success. Good orgs provision and enrol the device before day one. Discuss JIT (Just-In-Time) access provisioning as a solution."
+  },
+  {
+    id:'vendor_weekend',
+    icon:'🔧',
+    name:'Vendor emergency access — Sunday morning',
+    tag:'THIRD PARTY',tagColor:'rgba(255,77,106,0.3)',tagText:'var(--danger)',
+    desc:"TechVendor's support team receives an emergency alert on a Sunday morning. An agent logs into the shared support account from home to investigate. They have the correct credentials and claim an urgent business reason — but the access comes via a remote, untrusted connection outside business hours.",
+    user:'ext', res:'docs', device:'byod', network:'remote', time:'weekend', risk:'none', mfa:false,
+    policies:[
+      'Third-party vendor access is restricted to business hours (Monday–Friday, 09:00–17:00 GMT).',
+      'Vendor accounts must not be shared — each agent requires an individually provisioned account.',
+      'Emergency out-of-hours access requires pre-approval from a named TechCorp contact via the ticketing system.',
+      'All vendor access sessions must be MFA-authenticated regardless of resource sensitivity.'
+    ],
+    tp:"The vendor's agent has a genuine emergency reason to access the wiki. The resource is low-sensitivity. But multiple policy signals are failing simultaneously — no MFA, weekend access, BYOD, remote network, shared account.\n\nAsk students: Which of these signals is the most serious? If you could only fix one policy violation, which would you prioritise? At what point does accumulated risk from individually small signals become a hard block?",
+    notes:"This is a 'death by a thousand cuts' scenario — no single signal is catastrophic, but the combination creates an unacceptably low trust score. Good teaching moment for trust score accumulation. Also highlights third-party risk management: the vendor should have had an emergency access procedure defined in their contract."
+  },
+  {
+    id:'leaked_cred_legit',
+    icon:'🔑',
+    name:'Correct password — but credential is leaked',
+    tag:'BREACH',tagColor:'rgba(255,77,106,0.4)',tagText:'var(--danger)',
+    desc:"Alice logs in at her usual time, from her usual office location, on her managed device. Her credentials are correct and she completes MFA as normal. But this morning, the security team's HaveIBeenPwned API integration flagged her email address in a breach dump published overnight.",
+    user:'alice', res:'hr', device:'managed', network:'corp', time:'business', risk:'cred', mfa:true,
+    policies:[
+      'Any account appearing in an active breach database is immediately suspended pending password reset.',
+      'Credential exposure alerts from HaveIBeenPwned Enterprise API trigger automatic account review.',
+      'Re-authentication with a new, uncompromised credential is required before access is restored.',
+      'Even if MFA is present, a known-compromised password invalidates the credential factor.'
+    ],
+    tp:"Everything about Alice's session looks completely normal. She's at the office, on her managed device, at her usual time, and she even completed MFA. The only thing wrong is something she almost certainly doesn't know about yet.\n\nAsk students: Should a system block someone based on a breach database match that the user themselves doesn't know about? Is it fair to deny access to a legitimate employee because of another company's security failure? What should happen next — and how quickly?",
+    notes:"This is one of the most counterintuitive zero trust scenarios. The session is externally perfect but the underlying credential is compromised. Key teaching: zero trust integrates external threat intelligence (breach APIs) as a real-time signal. The correct response is automatic forced password reset and notification, not silent denial."
+  },
+  {
+    id:'impossible_travel_vpn',
+    icon:'✈️',
+    name:'Frequent flyer — or stolen credentials?',
+    tag:'TRAVEL',tagColor:'rgba(255,77,106,0.4)',tagText:'var(--danger)',
+    desc:"Bob logged in from London at 08:30. At 09:15 the system records another successful login from his account — this time originating from an IP geolocating to New York. Bob is a regular business traveller and is known to work across time zones.",
+    user:'bob', res:'hr', device:'managed', network:'vpn', time:'business', risk:'geo', mfa:true,
+    policies:[
+      'Simultaneous or near-simultaneous logins from geographically distant locations trigger automatic risk elevation.',
+      'Impossible travel alerts require out-of-band identity verification before access is restored.',
+      'Accounts flagged for impossible travel are suspended and referred to the Security Operations Centre.',
+      'Users who regularly travel internationally should pre-register travel plans via the IT portal.'
+    ],
+    tp:"Bob travels for work regularly and could plausibly have had an early flight. But London to New York in 45 minutes is impossible by any transport.\n\nAsk students: How should the system tell the difference between Bob catching a flight vs Bob's credentials being stolen? What would the ideal zero trust response look like — block immediately, or challenge and verify? What is the cost of a false positive here (blocking a legitimate travelling employee) vs a false negative (allowing an attacker)?",
+    notes:"Impossible travel is one of the clearest signals in zero trust — the physics of transport make it nearly unfakeable without credential theft. The travel pre-registration policy is a real mitigation used by enterprise systems. Discussion opportunity: false positive rate management, and how UX friction (reporting travel) trades against security friction (being locked out)."
+  },
+  {
+    id:'shared_screen_session',
+    icon:'💻',
+    name:'Screen sharing session — context switch risk',
+    tag:'BEHAVIOUR',tagColor:'rgba(180,120,255,0.3)',tagText:'#b478ff',
+    desc:"Carol is presenting her analysis dashboard in a video call. She is screen sharing with the full company on a managed device, VPN connected, during business hours. She tries to navigate to the HR records system mid-presentation to pull a live figure her manager requested.",
+    user:'carol', res:'hr', device:'managed', network:'vpn', time:'business', risk:'none', mfa:true,
+    policies:[
+      'HR Records System access is restricted to users with Level 3 clearance or above.',
+      'Data Analysts (Level 2) have read-only access to anonymised datasets only — not named HR records.',
+      'Access to named payroll or personal staff data requires explicit data controller approval and is audited.',
+      'Resource access requests during active screen-share sessions are flagged for post-session review.'
+    ],
+    tp:"Carol isn't doing anything suspicious. She's in a legitimate work meeting and her manager verbally requested the data. But she doesn't have the clearance for the HR system — and the request happened in a high-visibility context.\n\nAsk students: Should the reason for a request (a manager asked for it verbally) change whether access is granted? What is the right way for Carol to get this data? Could social engineering work through a scenario like this — and if so, how?",
+    notes:"This scenario surfaces the principle that privilege levels are non-negotiable regardless of social context. A verbal request from a manager doesn't elevate clearance. This is also a social engineering teaching moment — 'my manager told me to' is a classic pretexting technique. The screen-share audit flag is a real enterprise control."
+  }
+];
+
+var PRESET_GUIDES = {
+  wfh_senior: {
+    opening: "Bob is a senior developer who has worked here for four years. He has the right clearance, completed MFA, and connected via VPN — the same way he always does when working from home. The only difference today is he picked up his personal laptop instead of his work one.",
+    questions: [
+      { q: "What specifically is the policy engine objecting to — is it Bob, or is it his device?", followup: "If students say 'his device', push further: what is it about an unmanaged device that zero trust can't work around, even when the person is trusted?" },
+      { q: "If Bob's personal laptop is brand new, fully patched, and has antivirus installed, should the policy still block him?", followup: "Key point: zero trust requires verifiable attestation, not assumed compliance. The system can't know the laptop is safe — it can only know whether it is enrolled and reporting." },
+      { q: "What is the practical solution here — how should Bob get access to the code repository while working from home today?", followup: "Expected answer: connect using his MDM-enrolled work laptop, or request a temporary exception through IT. Discuss whether exceptions undermine zero trust." },
+      { q: "Is this policy fair to Bob? What is the cost of enforcing it, and what would happen if we didn't?", followup: "This is the human side of zero trust — explore the tension between security and employee experience. What would a compromised personal laptop mean for the codebase?" }
+    ],
+    tip: "This scenario works well for demonstrating that zero trust evaluates the session holistically — not just the person. The device is a trust signal in its own right, independent of identity."
+  },
+  after_hours_admin: {
+    opening: "Alice is the IT administrator — the most trusted person in the room from a privilege perspective. She is in the office, on her managed device, using the corporate network. The only thing that has changed is the clock.",
+    questions: [
+      { q: "Access is granted here — but something is different about this session compared to a daytime one. What is it?", followup: "Lead students to the monitoring tier change and the re-authentication requirement. These are real controls used by enterprise systems." },
+      { q: "Why might after-hours admin access to a production database be considered higher risk, even when the person is the legitimate admin?", followup: "Key insight: oversight is lower after hours. Insider threat incidents are statistically more common outside business hours. Also: if Alice's account is compromised, the attacker will try at 3am when nobody is watching." },
+      { q: "Should Alice be required to justify why she needs access outside business hours before the system grants it?", followup: "This introduces the concept of just-in-time (JIT) access — temporary elevated permissions granted for a specific window with a stated reason. Many mature zero trust implementations use this." },
+      { q: "What would a 'continuous monitoring' system actually look like for this session? What would trigger a re-evaluation?", followup: "Examples: downloading an unusually large number of records, accessing tables she doesn't normally touch, making schema changes — any deviation from baseline behaviour." }
+    ],
+    tip: "This is a good scenario for introducing the idea that zero trust is not binary. 'Grant with conditions' is a real and important outcome that students often don't expect."
+  },
+  remote_analyst: {
+    opening: "Carol is at her usual café, her usual time, on her fully compliant work laptop with MFA active. She does this regularly. The VPN just slipped her mind before she opened her laptop lid.",
+    questions: [
+      { q: "Carol's laptop is encrypted and managed. Her connection to the wiki uses HTTPS. Why does the café wifi still matter to zero trust?", followup: "Push students beyond 'public wifi is dangerous' — the specific issue is network-level visibility, traffic inspection, and attribution. On untrusted egress, the company cannot monitor or control what else is on the network path." },
+      { q: "Is this a system failure, a user failure, or a policy failure?", followup: "Interesting debate: the user forgot to enable VPN (user failure). But should the system have caught this earlier rather than letting her access the wiki at all? Could a network-aware MDM profile auto-enable VPN on untrusted networks?" },
+      { q: "What is the difference between HTTPS encryption and VPN encryption in this context?", followup: "HTTPS encrypts the content of the request. VPN encrypts the entire connection, hides the destination from the local network, and routes traffic through a controlled egress point the company can monitor. Both matter for different reasons." },
+      { q: "If zero trust is about verifying every signal, and Carol's identity, device, MFA, time, and behaviour are all clean — is blocking her on network origin alone proportionate?", followup: "There is no single right answer. This is the nuance of risk-based access control: the policy is about minimising attack surface, not responding to evidence of wrongdoing." }
+    ],
+    tip: "Students often assume 'managed device plus HTTPS' is sufficient. This scenario is excellent for unpacking why network origin is a separate, independent trust signal."
+  },
+  new_joiner: {
+    opening: "This person is genuinely legitimate. They are sitting in the office on their first day, credentials provisioned by IT, MFA set up on their phone this morning. They just want to access the code repository and get started.",
+    questions: [
+      { q: "Who is responsible for this block — the employee, the IT team, or the policy?", followup: "The employee did everything right. IT provisioned credentials before the device was enrolled. The policy is working correctly — it is the process that has a gap. This is an organisational failure surfaced by zero trust enforcement." },
+      { q: "What would a well-run onboarding process look like to prevent this situation entirely?", followup: "Expected answer: device enrolled and MDM-compliant before the employee's first day. Credentials activated only after device enrolment is confirmed. Discuss whether this is realistic for remote hires." },
+      { q: "Should there be an exception process for first-day access? What are the risks of having one?", followup: "Exceptions are the enemy of zero trust — every exception is a potential attack vector. But so is a day-one employee who can't work. Discuss how JIT access with a formal approval workflow balances both concerns." },
+      { q: "How does this scenario demonstrate the difference between authentication (proving who you are) and authorisation (being allowed to do something)?", followup: "The employee is fully authenticated — their identity is confirmed. But they are not authorised because a required condition (device enrolment) is unmet. Zero trust separates these two concepts explicitly." }
+    ],
+    tip: "This is one of the most relatable scenarios for students — it feels obviously unfair. Use that reaction to drive a discussion about why rigid policies exist and what the alternative looks like."
+  },
+  vendor_weekend: {
+    opening: "The vendor claims an emergency. The resource is low-sensitivity — just the internal wiki. The agent has the correct password. But look at the full picture: it's 02:47 on a Sunday, the network is untrusted, MFA is missing, the account is shared, and no one at the vendor knew this access was happening.",
+    questions: [
+      { q: "If you had to pick the single most serious signal in this scenario, which would it be and why?", followup: "There is no definitively correct answer — use this to discuss how signals combine. The TOR network and missing MFA are both hard problems, but the shared credential means you cannot even verify who is making the request." },
+      { q: "At what point does a collection of individually small risk signals become a hard block?", followup: "This is the trust score concept in action. Each signal reduces the score slightly. Discuss whether the policy should be about individual thresholds or cumulative score." },
+      { q: "What contract terms should TechCorp have required from the vendor to prevent this situation?", followup: "Individual named accounts per agent, mandatory MFA, restricted access hours, and an emergency access procedure with pre-approved contacts. This is vendor risk management." },
+      { q: "The wiki is low-sensitivity. Does the risk level of the resource change how you evaluate the access request?", followup: "It does affect the severity of a breach — but zero trust evaluates process, not just outcome. An unattributable access attempt at 03:00 on a shared credential is suspicious regardless of what the target contains." }
+    ],
+    tip: "This scenario is excellent for demonstrating how shared credentials destroy accountability — the foundational requirement for any audit trail."
+  },
+  leaked_cred_legit: {
+    opening: "Alice's session is externally perfect. She is at the office, on her managed device, at her usual time. MFA completed without issue. The only thing the system knows that Alice doesn't yet: her password appeared in a breach database published at 03:00 this morning.",
+    questions: [
+      { q: "Is it right to block someone based on information they don't know about yet?", followup: "This is philosophically interesting — the password is compromised whether Alice knows it or not. The attacker who has it doesn't care whether Alice has been notified. The system is protecting the organisation from a credential that is no longer exclusively Alice's." },
+      { q: "Alice completed MFA successfully. Why isn't that enough to override the credential alert?", followup: "MFA verifies that Alice has her phone — it does not verify that her password is still a secret. If the breach database match is accurate, the password factor is compromised. Zero trust evaluates each factor independently." },
+      { q: "What should happen in the next 60 seconds — what is the correct response to this event?", followup: "Automatic account suspension, forced password reset, notification to Alice and her manager, and a review of recent account activity to see if the credential was already used before the alert fired." },
+      { q: "How did the breach database alert fire — what system integrations make this possible?", followup: "Services like HaveIBeenPwned Enterprise API and SpyCloud integrate with identity providers. New entries in breach databases are cross-referenced against corporate email addresses automatically. This is real technology used by large organisations." }
+    ],
+    tip: "This is the most counterintuitive scenario in the set — everything looks right from the outside. It powerfully illustrates that zero trust integrates external threat intelligence, not just internal session data."
+  },
+  impossible_travel_vpn: {
+    opening: "Bob logged in from London at 08:30. Forty-five minutes later, a login from New York appears on his account. He travels internationally for work. He hasn't responded to messages yet this morning.",
+    questions: [
+      { q: "What is the first question a security analyst should ask when this alert fires?", followup: "Has Bob indicated he was travelling? Is there a pre-registered travel plan in the system? Are there other anomalies in the session (unusual resources accessed, large data volumes)? The alert is a starting point, not a conclusion." },
+      { q: "What is the cost of a false positive here — blocking a legitimate employee who happens to travel?", followup: "Real friction: Bob is in New York for an important meeting and cannot access what he needs. This is why travel pre-registration policies exist — they allow the system to calibrate expectations and reduce false positive rates." },
+      { q: "What is the cost of a false negative — allowing access when the credential actually is stolen?", followup: "An attacker with Bob's Level 3 credentials has access to HR records and the code repository. Depending on what they do, the impact could range from data exfiltration to supply chain compromise. The asymmetry matters." },
+      { q: "If Bob is in New York and his credentials were also used from London 45 minutes later — which session is more likely to be the attacker?", followup: "The London session that appeared 45 minutes after the New York login. This is the unusual one — someone who already has a valid session from the legitimate location would not need to log in again from a different country." }
+    ],
+    tip: "This scenario is ideal for exploring false positive vs false negative trade-offs — a core concept in security decision-making that students rarely encounter before this."
+  },
+  shared_screen_session: {
+    opening: "Carol is on a video call with the whole company, sharing her screen. Her manager verbally asks for a specific figure from the HR records system. Carol navigates to it mid-presentation, live on screen. The access is immediately denied.",
+    questions: [
+      { q: "What is the technical reason for the denial — and is it connected to the screen sharing at all?", followup: "The denial is purely because Carol is Level 2 and HR Records requires Level 3. The screen sharing is irrelevant to the access decision — but it creates an interesting social context that makes the block feel more jarring." },
+      { q: "Carol's manager verbally asked for the data. Does a manager's verbal request change whether access should be granted?", followup: "No — privilege levels are non-negotiable regardless of social context. This is exactly the kind of social engineering pressure that insider threats and external attackers exploit. 'My manager told me to' is a classic pretexting line." },
+      { q: "How should Carol's manager have handled this request properly?", followup: "Request the data in advance through the appropriate channel, or have someone with Level 3 access pull it. A live verbal request mid-presentation is a process failure, not an access control failure." },
+      { q: "What would an attacker learn from watching this screen sharing session?", followup: "That Carol tried to access HR records and was denied — meaning that data exists and is protected. The attacker now knows what Carol's access level is, what resources she can reach, and what she was looking for. Context leakage is a real risk." }
+    ],
+    tip: "The social dynamics of this scenario are the teaching point — the verbal request from a manager creates pressure to bypass policy. This mirrors real-world social engineering very closely."
+  }
+};
+
+var mfaOn = true;
+var selectedPreset = null;
+var policies = [];
+
+function init(){
+  renderPresets();
+  renderPolicies();
+  updatePreview();
+  document.getElementById('classroom-url').textContent = window.location.origin + '/classroom.html';
+  ['cfg-user','cfg-res','cfg-device','cfg-network','cfg-time','cfg-risk'].forEach(function(id){
+    document.getElementById(id).addEventListener('change', function(){ selectedPreset=null; spoilerStates={score:false,decision:false}; renderPresets(); updatePreview(); });
+  });
+  document.getElementById('cfg-tp').addEventListener('input', updatePreview);
+  // Load any existing pushed scenario
+  var existing = localStorage.getItem('zt_classroom_scenario');
+  if(existing){ document.getElementById('push-status').textContent='A scenario is currently live in the classroom view.'; }
+}
+
+function renderPresets(){
+  var el = document.getElementById('preset-list');
+  el.innerHTML = '';
+  PRESETS.forEach(function(p){
+    var d = document.createElement('div');
+    d.className = 'preset-card' + (selectedPreset===p.id?' selected':'');
+    d.innerHTML = '<div class="preset-head">'
+      +'<span class="preset-icon">'+p.icon+'</span>'
+      +'<span class="preset-name">'+p.name+'</span>'
+      +'<span class="preset-tag" style="color:'+p.tagText+';border-color:'+p.tagColor+'">'+p.tag+'</span>'
+      +'</div>'
+      +'<div class="preset-desc">'+p.desc+'</div>';
+    d.onclick = function(){ loadPreset(p); };
+    el.appendChild(d);
+  });
+}
+
+function loadPreset(p){
+  selectedPreset = p.id;
+  document.getElementById('cfg-user').value = p.user;
+  document.getElementById('cfg-res').value = p.res;
+  document.getElementById('cfg-device').value = p.device;
+  document.getElementById('cfg-network').value = p.network;
+  document.getElementById('cfg-time').value = p.time;
+  document.getElementById('cfg-risk').value = p.risk;
+  mfaOn = p.mfa;
+  var t = document.getElementById('cfg-mfa-track');
+  if(mfaOn){ t.classList.add('on'); } else { t.classList.remove('on'); }
+  policies = p.policies.slice();
+  document.getElementById('cfg-tp').value = p.tp;
+  spoilerStates = {score:false, decision:false};
+  renderPresets();
+  renderPolicies();
+  updatePreview();
+  updateCharCount();
+}
+
+function toggleMfa(){
+  mfaOn = !mfaOn;
+  var t = document.getElementById('cfg-mfa-track');
+  if(mfaOn){ t.classList.add('on'); } else { t.classList.remove('on'); }
+  selectedPreset = null;
+  renderPresets();
+  updatePreview();
+}
+
+function addPolicy(text){
+  policies.push(text||'');
+  renderPolicies();
+  updatePreview();
+}
+
+function removePolicy(i){
+  policies.splice(i,1);
+  renderPolicies();
+  updatePreview();
+}
+
+function renderPolicies(){
+  var el = document.getElementById('policy-rows');
+  el.innerHTML = '';
+  policies.forEach(function(p, i){
+    var row = document.createElement('div');
+    row.className = 'policy-row';
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.value = p;
+    inp.placeholder = 'e.g. All remote access requires VPN...';
+    inp.oninput = function(){ policies[i]=this.value; updatePreview(); };
+    var del = document.createElement('button');
+    del.className = 'policy-del';
+    del.innerHTML = '✕';
+    del.onclick = function(){ removePolicy(i); };
+    row.appendChild(inp);
+    row.appendChild(del);
+    el.appendChild(row);
+  });
+}
+
+function updateCharCount(){
+  var v = document.getElementById('cfg-tp').value;
+  document.getElementById('tp-char').textContent = v.length + ' characters';
+}
+
+function getConfig(){
+  return {
+    user: document.getElementById('cfg-user').value,
+    res: document.getElementById('cfg-res').value,
+    device: document.getElementById('cfg-device').value,
+    network: document.getElementById('cfg-network').value,
+    time: document.getElementById('cfg-time').value,
+    risk: document.getElementById('cfg-risk').value,
+    mfa: mfaOn,
+    policies: policies.filter(function(p){ return p.trim(); }),
+    tp: document.getElementById('cfg-tp').value.trim(),
+    preset: selectedPreset,
+    pushedAt: null
+  };
+}
+
+function updatePreview(){
+  var cfg = getConfig();
+  var u = USERS[cfg.user];
+  var r = RESOURCES[cfg.res];
+
+  // Compute decision
+  var identOk = u.level >= r.req;
+  var score = 100;
+  if(!identOk) score -= 50;
+  if(!cfg.mfa) score -= 20;
+  if(cfg.device==='byod') score -= 10;
+  if(cfg.device==='unknown') score -= 25;
+  if(cfg.network==='remote') score -= 15;
+  if(cfg.network==='tor') score -= 40;
+  if(cfg.time!=='business') score -= 5;
+  var riskP={none:0,geo:60,brute:50,cred:60,priv:55};
+  score -= riskP[cfg.risk]||0;
+  score = Math.max(0,score);
+
+  var hardBlock = !identOk || cfg.risk!=='none' || cfg.network==='tor' || cfg.device==='unknown';
+  var needMfa = !cfg.mfa && r.req >= 2;
+  var decision, dColor;
+  if(hardBlock){ decision='DENY'; dColor='var(--danger)'; }
+  else if(needMfa){ decision='STEP-UP MFA'; dColor='var(--warn)'; }
+  else if(score<60){ decision='GRANT (monitored)'; dColor='var(--warn)'; }
+  else { decision='GRANT'; dColor='var(--accent2)'; }
+
+  var deviceLabels={managed:'Managed / MDM enrolled',byod:'BYOD / personal',unknown:'Unknown'};
+  var networkLabels={corp:'Corporate network',vpn:'VPN tunnel',remote:'Remote / untrusted',tor:'TOR exit node'};
+  var timeLabels={business:'Business hours',after:'After hours',weekend:'Weekend'};
+  var riskLabels={none:'None',geo:'Impossible travel',brute:'Brute force',cred:'Leaked credential',priv:'Privilege escalation'};
+
+  document.getElementById('preview-card').innerHTML =
+    row('User', u.name + ' ('+u.role+', L'+u.level+')', 'var(--text)')
+   +row('Resource', r.name + ' (requires L'+r.req+')', 'var(--text)')
+   +row('Device', deviceLabels[cfg.device], cfg.device==='managed'?'var(--accent2)':cfg.device==='byod'?'var(--warn)':'var(--danger)')
+   +row('Network', networkLabels[cfg.network], cfg.network==='tor'?'var(--danger)':cfg.network==='remote'?'var(--warn)':'var(--accent2)')
+   +row('Time', timeLabels[cfg.time], cfg.time==='business'?'var(--accent2)':'var(--warn)')
+   +row('Risk signal', riskLabels[cfg.risk], cfg.risk==='none'?'var(--accent2)':'var(--danger)')
+   +row('MFA', cfg.mfa?'Completed':'Not completed', cfg.mfa?'var(--accent2)':'var(--danger)')
+   +spoilerRow('score', 'Trust score', score+' / 100', score>=70?'var(--accent2)':score>=40?'var(--warn)':'var(--danger)')
+   +spoilerRow('decision', 'Expected decision', decision, dColor);
+
+  // Policies
+  var pl = document.getElementById('preview-policy-list');
+  if(cfg.policies.length===0){
+    pl.innerHTML = '<div style="font-size:.7rem;color:var(--text3)">No policies added yet.</div>';
+  } else {
+    pl.innerHTML = cfg.policies.map(function(p){
+      return '<div class="policy-preview-item"><span class="policy-bullet">■</span><span>'+p+'</span></div>';
+    }).join('');
+  }
+
+  // Talking points
+  var tpWrap = document.getElementById('preview-tp-wrap');
+  var tpEl = document.getElementById('preview-tp');
+  if(cfg.tp){ tpWrap.style.display='block'; tpEl.textContent=cfg.tp; }
+  else { tpWrap.style.display='none'; }
+
+  // Instructor discussion guide
+  var preset = PRESETS.find(function(p){ return p.id===selectedPreset; });
+  var guide = selectedPreset ? PRESET_GUIDES[selectedPreset] : null;
+  var guideEl = document.getElementById('instructor-guide-wrap');
+  if(preset && guide){
+    var qHtml = guide.questions.map(function(item, i){
+      return '<div class="guide-q">'
+        +'<span class="guide-q-num">'+(i+1)+'.</span>'
+        +'<div><div class="guide-q-text">'+item.q+'</div>'
+        +'<div class="guide-followup" style="margin-top:4px">'
+        +'<span class="guide-followup-label">↳ If...</span>'
+        +'<span class="guide-followup-text">'+item.followup+'</span>'
+        +'</div></div></div>';
+    }).join('');
+    guideEl.innerHTML =
+      '<div class="guide-section">'
+      +'<div class="guide-section-title" style="color:var(--warn)">Scenario framing</div>'
+      +'<div class="guide-opening">'+guide.opening+'</div>'
+      +'</div>'
+      +'<div class="guide-section">'
+      +'<div class="guide-section-title" style="color:var(--accent)">Discussion questions</div>'
+      +'<div style="font-size:.62rem;color:var(--text3);margin-bottom:.5rem">Each question includes a follow-up prompt to use if students need a nudge in the right direction.</div>'
+      +qHtml
+      +'</div>'
+      +'<div class="guide-section">'
+      +'<div class="guide-section-title" style="color:var(--accent2)">Instructor tip</div>'
+      +'<div class="guide-tip"><div class="guide-tip-label">Teaching focus</div><div class="guide-tip-text">'+guide.tip+'</div></div>'
+      +'</div>'
+      +'<div class="guide-section">'
+      +'<div class="guide-section-title" style="color:var(--text3)">Security principle</div>'
+      +'<div style="font-size:.72rem;color:var(--text2);line-height:1.7;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:.65rem .85rem">'+preset.notes+'</div>'
+      +'</div>';
+  } else if(cfg.tp){
+    // Custom scenario — render generic guide from the tp text
+    guideEl.innerHTML =
+      '<div class="guide-section">'
+      +'<div class="guide-section-title" style="color:var(--warn)">Custom scenario — opening prompt</div>'
+      +'<div class="guide-opening">'+cfg.tp+'</div>'
+      +'</div>'
+      +'<div class="guide-section">'
+      +'<div class="guide-section-title" style="color:var(--accent)">Suggested discussion questions</div>'
+      +'<div class="guide-q"><span class="guide-q-num">1.</span><div class="guide-q-text">Looking at the signals on the left — which one is most responsible for the access decision, and why?</div></div>'
+      +'<div class="guide-q"><span class="guide-q-num">2.</span><div class="guide-q-text">Is this decision fair to the user? What would they need to change to get access?</div></div>'
+      +'<div class="guide-q"><span class="guide-q-num">3.</span><div class="guide-q-text">Which zero trust principle is most clearly demonstrated in this scenario?</div></div>'
+      +'<div class="guide-q"><span class="guide-q-num">4.</span><div class="guide-q-text">If you were the security policy author, would you set the same rules — or change anything?</div></div>'
+      +'</div>';
+  } else {
+    guideEl.innerHTML = '<div style="font-size:.7rem;color:var(--text3);line-height:1.7;font-style:italic">Select a preset scenario or enter a custom discussion prompt to generate instructor guidance here.</div>';
+  }
+}
+
+function row(key, val, color){
+  return '<div class="scenario-row"><span class="scenario-key">'+key+'</span><span class="scenario-val" style="color:'+color+'">'+val+'</span></div>';
+}
+var spoilerStates={score:false, decision:false};
+function spoilerRow(id, key, val, color){
+  var shown = spoilerStates[id];
+  return '<div class="spoiler-row">'
+    +'<span class="spoiler-key">'+key+'</span>'
+    +'<span class="spoiler-val-wrap">'
+    +'<span class="spoiler-val '+(shown?'spoiler-shown':'spoiler-hidden')+'" id="spoiler-val-'+id+'" style="color:'+color+'">'+val+'</span>'
+    +'<button class="spoiler-toggle" onclick="toggleSpoiler(''+id+'')">'+(shown?'Hide':'Reveal')+'</button>'
+    +'</span></div>';
+}
+function toggleSpoiler(id){
+  spoilerStates[id] = !spoilerStates[id];
+  updatePreview();
+}
+
+function pushScenario(){
+  var cfg = getConfig();
+  cfg.pushedAt = new Date().toISOString();
+  localStorage.setItem('zt_classroom_scenario', JSON.stringify(cfg));
+
+  var btn = document.getElementById('push-btn');
+  var status = document.getElementById('push-status');
+  btn.classList.add('pushed');
+  btn.textContent = '✓ Pushed to classroom';
+  status.textContent = 'Pushed at ' + new Date().toLocaleTimeString() + ' — students can now see this scenario.';
+  setTimeout(function(){
+    btn.classList.remove('pushed');
+    btn.textContent = '⬆ Push to classroom view';
+  }, 3000);
+}
+
+function copyUrl(){
+  var url = window.location.origin + '/classroom.html';
+  navigator.clipboard.writeText(url).then(function(){
+    var btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent='Copy'; }, 2000);
+  });
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', function(){
+    if(sessionStorage.getItem('zt_instructor')==='1') init();
+  });
+} else {
+  if(sessionStorage.getItem('zt_instructor')==='1') init();
+}
+</script>
+</body>
+</html>

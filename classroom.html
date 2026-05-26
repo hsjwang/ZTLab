@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classroom — Zero Trust Network Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12;--surface:#111620;--surface2:#1a2030;
+  --border:rgba(80,180,255,0.12);--border-bright:rgba(80,180,255,0.35);
+  --accent:#4db8ff;--accent2:#00e5a0;--warn:#ffb930;--danger:#ff4d6a;
+  --text:#e8f0ff;--text2:#7a90b0;--text3:#3d5070;
+  --mono:'Share Tech Mono',monospace;--display:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:999}
+
+/* ── Waiting screen ── */
+#waiting-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:20px;padding:2rem}
+.waiting-icon{font-size:3rem;opacity:.3;animation:spin 8s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.waiting-title{font-family:var(--display);font-size:1.2rem;font-weight:700;color:var(--text);text-align:center}
+.waiting-sub{font-size:.78rem;color:var(--text2);text-align:center;line-height:1.8;max-width:380px}
+.waiting-pulse{display:flex;align-items:center;gap:8px;font-size:.7rem;color:var(--text3)}
+.wpulse{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── Header ── */
+#classroom-panel{display:none}
+.header{border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-wrap:wrap;gap:10px}
+.header-logo{display:flex;align-items:center;gap:12px}
+.logo-mark{width:32px;height:32px;border:1.5px solid var(--accent);border-radius:6px;position:relative;flex-shrink:0}
+.logo-mark::before{content:'';position:absolute;width:16px;height:16px;border:1.5px solid var(--accent2);border-radius:3px;transform:rotate(45deg);top:6px;left:6px}
+.header h1{font-family:var(--display);font-size:1rem;font-weight:700}
+.header h1 span{color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.live-badge{font-size:.6rem;padding:2px 10px;border-radius:3px;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.4);color:var(--accent2);font-family:var(--display);font-weight:600;letter-spacing:.06em;display:flex;align-items:center;gap:6px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:pulse 2s infinite}
+.scenario-ts{font-size:.6rem;color:var(--text3)}
+.nav-link{font-size:.65rem;padding:4px 12px;border-radius:4px;border:1px solid var(--border-bright);color:var(--text2);text-decoration:none;font-family:var(--display);font-weight:600;transition:all .15s}
+.nav-link:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── Layout ── */
+.layout{display:grid;grid-template-columns:1fr 320px;min-height:calc(100vh - 62px)}
+.sim-col{border-right:1px solid var(--border);overflow-y:auto}
+.context-col{background:var(--surface);overflow-y:auto}
+
+/* ── Scenario banner ── */
+.scenario-banner{background:rgba(255,185,48,0.06);border-bottom:1px solid rgba(255,185,48,0.2);padding:.85rem 1.25rem;display:flex;align-items:flex-start;gap:14px}
+.scenario-banner-icon{font-size:1.4rem;flex-shrink:0;line-height:1}
+.scenario-banner-body{}
+.scenario-banner-title{font-family:var(--display);font-size:.85rem;font-weight:700;color:var(--warn);margin-bottom:3px}
+.scenario-banner-desc{font-size:.72rem;color:var(--text2);line-height:1.6}
+
+/* ── Sim controls — locked ── */
+.sim-wrap{padding:1rem 1.25rem}
+.col-label{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-family:var(--display);font-weight:600;margin-bottom:.5rem}
+
+.identity-card{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:.8rem 1rem;display:flex;align-items:center;gap:12px;margin-bottom:.75rem}
+.id-avatar{width:40px;height:40px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;font-family:var(--display);border:1.5px solid}
+.id-info{}
+.id-name{font-family:var(--display);font-size:.88rem;font-weight:700;color:var(--text)}
+.id-role{font-size:.65rem;color:var(--text2);margin-top:1px}
+.id-level{margin-left:auto;font-family:var(--display);font-size:1.2rem;font-weight:800;flex-shrink:0}
+.locked-badge{font-size:.58rem;padding:1px 7px;border-radius:3px;border:1px solid var(--border);color:var(--text3);font-family:var(--display);font-weight:600;margin-left:auto;flex-shrink:0}
+
+.resource-card{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:.75rem 1rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between}
+.res-name{font-family:var(--display);font-size:.85rem;font-weight:700;color:var(--text)}
+.res-sub{font-size:.65rem;color:var(--text2);margin-top:1px}
+.res-tag{font-size:.58rem;padding:2px 8px;border-radius:3px;border:1px solid;font-family:var(--display);font-weight:600;flex-shrink:0}
+
+.ctx-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem}
+.ctx-chip{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:.45rem .65rem}
+.ctx-chip-label{font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:var(--display);font-weight:600;margin-bottom:2px}
+.ctx-chip-val{font-size:.72rem;color:var(--text);font-weight:600;font-family:var(--display)}
+.ctx-chip-val.ok{color:var(--accent2)}
+.ctx-chip-val.warn{color:var(--warn)}
+.ctx-chip-val.danger{color:var(--danger)}
+
+/* ── Signal evaluation ── */
+.signals-wrap{background:var(--surface);border:1px solid var(--border);border-radius:7px;overflow:hidden;margin-bottom:.75rem}
+.signals-header{padding:.55rem .9rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.signals-label{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:var(--display);font-weight:600}
+.score-text{font-size:.65rem;font-family:var(--display);font-weight:700}
+.signal-row{display:flex;align-items:center;justify-content:space-between;padding:.5rem .9rem;border-bottom:1px solid var(--border);font-size:.7rem}
+.signal-row:last-child{border-bottom:none}
+.signal-label{color:var(--text2);flex-shrink:0;width:150px}
+.signal-right{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.sig-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sig-ok{background:var(--accent2)}
+.sig-warn{background:var(--warn)}
+.sig-block{background:var(--danger)}
+.signal-val{color:var(--text);font-weight:600;font-family:var(--display);font-size:.68rem}
+.signal-note{font-size:.6rem;color:var(--text3)}
+
+/* ── Score bar ── */
+.score-bar-wrap{padding:.5rem .9rem;border-top:1px solid var(--border)}
+.score-bar-header{display:flex;justify-content:space-between;font-size:.6rem;color:var(--text3);margin-bottom:4px}
+.score-bar-track{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:2px;transition:width .5s,background .5s}
+
+/* ── Decision ── */
+.decision-box{border-radius:7px;padding:1rem 1.1rem;margin-bottom:.75rem;display:flex;align-items:flex-start;gap:12px}
+.decision-icon{font-size:1.5rem;flex-shrink:0;line-height:1}
+.decision-title{font-family:var(--display);font-size:.95rem;font-weight:700;margin-bottom:3px}
+.decision-desc{font-size:.7rem;line-height:1.6;color:var(--text2)}
+
+/* ── Log ── */
+.log-wrap{background:var(--surface);border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.log-header{padding:.5rem .9rem;border-bottom:1px solid var(--border)}
+.log-entry{font-size:.62rem;padding:.35rem .9rem;border-bottom:1px solid var(--border);line-height:1.4;color:var(--text3);font-family:var(--mono)}
+.log-entry:last-child{border-bottom:none}
+
+/* ── Student voting panel ── */
+.vote-wrap{border-radius:7px;border:1px solid rgba(77,184,255,0.25);background:rgba(77,184,255,0.04);padding:1rem 1.1rem;margin-bottom:.75rem}
+.vote-prompt{font-family:var(--display);font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:.35rem}
+.vote-sub{font-size:.7rem;color:var(--text2);margin-bottom:.9rem;line-height:1.5}
+.vote-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.75rem}
+.vote-btn{padding:.6rem .4rem;border-radius:5px;border:1px solid;font-family:var(--display);font-weight:700;font-size:.72rem;cursor:pointer;transition:all .2s;text-align:center;line-height:1.3;background:transparent}
+.vote-btn-grant{color:var(--accent2);border-color:rgba(0,229,160,0.4)}
+.vote-btn-grant:hover,.vote-btn-grant.selected{background:rgba(0,229,160,0.12);border-color:var(--accent2)}
+.vote-btn-deny{color:var(--danger);border-color:rgba(255,77,106,0.4)}
+.vote-btn-deny:hover,.vote-btn-deny.selected{background:rgba(255,77,106,0.1);border-color:var(--danger)}
+.vote-btn-stepup{color:var(--warn);border-color:rgba(255,185,48,0.4)}
+.vote-btn-stepup:hover,.vote-btn-stepup.selected{background:rgba(255,185,48,0.08);border-color:var(--warn)}
+.vote-btn:disabled{opacity:.4;cursor:default}
+.vote-submit{width:100%;padding:.55rem;border-radius:4px;border:1px solid var(--border-bright);color:var(--text2);background:transparent;font-family:var(--display);font-weight:700;font-size:.75rem;cursor:pointer;transition:all .2s}
+.vote-submit:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.vote-submit:disabled{opacity:.3;cursor:default}
+
+/* ── Reveal panel (shown after vote) ── */
+.reveal-wrap{border-radius:7px;padding:1rem 1.1rem;margin-bottom:.75rem;display:flex;flex-direction:column;gap:.6rem}
+.reveal-verdict{display:flex;align-items:flex-start;gap:10px}
+.reveal-icon{font-size:1.4rem;flex-shrink:0;line-height:1}
+.reveal-title{font-family:var(--display);font-size:.92rem;font-weight:700;margin-bottom:3px}
+.reveal-desc{font-size:.7rem;line-height:1.6;color:var(--text2)}
+.verdict-feedback{border-radius:4px;padding:.5rem .75rem;font-size:.72rem;line-height:1.5;border:1px solid}
+.verdict-correct{background:rgba(0,229,160,0.06);border-color:rgba(0,229,160,0.3);color:var(--accent2)}
+.verdict-wrong{background:rgba(255,77,106,0.06);border-color:rgba(255,77,106,0.25);color:var(--danger)}
+.verdict-partial{background:rgba(255,185,48,0.06);border-color:rgba(255,185,48,0.3);color:var(--warn)}
+.log-ok{color:var(--accent2)}
+.log-deny{color:var(--danger)}
+.log-mfa{color:var(--warn)}
+.log-user{color:var(--accent)}
+
+/* ── Right col: context panel ── */
+.ctx-panel{padding:.75rem 1rem}
+.panel-section{margin-bottom:1.25rem}
+.panel-title{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;font-family:var(--display);font-weight:600;margin-bottom:.6rem;display:flex;align-items:center;gap:8px}
+.panel-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.policy-item{display:flex;align-items:flex-start;gap:8px;padding:.45rem .7rem;background:var(--bg);border:1px solid var(--border);border-radius:4px;margin-bottom:5px;line-height:1.5}
+.policy-bullet{color:var(--danger);flex-shrink:0;font-size:.65rem;margin-top:2px}
+.policy-text{font-size:.7rem;color:var(--text2)}
+
+/* discussion section moved to instructor panel */
+
+.empty-panel{font-size:.7rem;color:var(--text3);line-height:1.7;padding:.5rem 0}
+
+/* ── Zero trust pillars ── */
+.pillar{display:flex;align-items:flex-start;gap:8px;padding:.4rem .6rem;border-radius:4px;margin-bottom:4px;background:var(--bg);border:1px solid var(--border)}
+.pillar-icon{font-size:.7rem;flex-shrink:0;margin-top:1px}
+.pillar-text{font-size:.68rem;color:var(--text2);line-height:1.4}
+.pillar-text strong{color:var(--text);font-weight:600}
+
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:2px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.fade-in{animation:fadeIn .3s ease}
+</style>
+</head>
+<body>
+
+<!-- ── Waiting screen ── -->
+<div id="waiting-screen">
+  <div class="waiting-icon">⬡</div>
+  <div class="waiting-title">Waiting for instructor to push a scenario</div>
+  <div class="waiting-sub">Your instructor will configure and push an access control scenario to this page. When it arrives, it will appear here automatically — no need to refresh.</div>
+  <div class="waiting-pulse"><div class="wpulse"></div><span>Listening for scenario...</span></div>
+</div>
+
+<!-- ── Classroom panel ── -->
+<div id="classroom-panel">
+  <div class="header">
+    <div class="header-logo">
+      <div class="logo-mark"></div>
+      <div>
+        <h1><span>ZERO TRUST</span> CLASSROOM</h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="live-badge"><div class="live-dot"></div>LIVE SCENARIO</div>
+      <span class="scenario-ts" id="scenario-ts"></span>
+      <a href="dossiers.html" class="nav-link">Dossiers</a>
+      <a href="glossary.html" class="nav-link">Glossary</a>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT: simulator (locked to instructor config) -->
+    <div class="sim-col">
+      <div class="scenario-banner" id="scenario-banner">
+        <div class="scenario-banner-icon" id="banner-icon">⬡</div>
+        <div class="scenario-banner-body">
+          <div class="scenario-banner-title" id="banner-title">Scenario loading...</div>
+          <div class="scenario-banner-desc" id="banner-desc"></div>
+        </div>
+      </div>
+
+      <div class="sim-wrap">
+        <div class="col-label">User identity</div>
+        <div class="identity-card" id="id-card"></div>
+
+        <div class="col-label">Target resource</div>
+        <div class="resource-card" id="res-card"></div>
+
+        <div class="col-label">Request context</div>
+        <div class="ctx-grid" id="ctx-grid"></div>
+
+        <div class="col-label">Policy engine — signal evaluation</div>
+        <div class="signals-wrap">
+          <div class="signals-header">
+            <span class="signals-label">Signal analysis</span>
+            <span class="score-text" id="score-display" style="color:var(--text3)">—</span>
+          </div>
+          <div id="signal-rows"></div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-header"><span>Trust score</span><span id="score-val">—</span></div>
+            <div class="score-bar-track"><div class="score-bar-fill" id="score-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <div class="col-label">Access decision</div>
+
+        <!-- Student voting panel -->
+        <div class="vote-wrap" id="vote-wrap">
+          <div class="vote-prompt">What do you think the system should do?</div>
+          <div class="vote-sub">Read the signals above and the company policies on the right, then make your call. There are no wrong attempts — discuss your reasoning with the class.</div>
+          <div class="vote-btns">
+            <div class="vote-btn vote-btn-grant" id="vbtn-grant" onclick="castVote('grant')">✓<br>Grant Access</div>
+            <div class="vote-btn vote-btn-deny" id="vbtn-deny" onclick="castVote('deny')">✕<br>Deny Access</div>
+            <div class="vote-btn vote-btn-stepup" id="vbtn-stepup" onclick="castVote('stepup')">△<br>Step-Up MFA</div>
+          </div>
+          <button class="vote-submit" id="vote-submit" onclick="revealDecision()" disabled>Submit my answer →</button>
+        </div>
+
+        <!-- Reveal panel (hidden until vote submitted) -->
+        <div id="reveal-wrap" style="display:none"></div>
+
+        <div class="col-label">Audit log</div>
+        <div class="log-wrap">
+          <div class="log-header"><span class="col-label" style="margin:0">Session log</span></div>
+          <div id="log-area"><div class="log-entry" style="color:var(--text3)">Waiting for scenario...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: context, policies, discussion -->
+    <div class="context-col">
+      <div class="ctx-panel">
+
+        <div class="panel-section" id="policy-section">
+          <div class="panel-title" style="color:var(--danger)">Company policies</div>
+          <div id="policy-list"><div class="empty-panel">No policies configured for this scenario.</div></div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-title" style="color:var(--text3)">Zero trust principles at work</div>
+          <div id="pillars-list"></div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-title" style="color:var(--text3)">Key terms</div>
+          <div style="font-size:.7rem;color:var(--text2);line-height:1.8">
+            Look up any unfamiliar terms from this scenario in the <a href="glossary.html" style="color:var(--accent)">Glossary</a> — each term includes a plain-English definition and a real-world analogy.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var USERS={
+  alice:{name:'Alice Chen',role:'IT Administrator',level:4,initials:'AC',bg:'rgba(77,184,255,0.15)',bc:'rgba(77,184,255,0.5)',tc:'#4db8ff'},
+  bob:{name:'Bob Martinez',role:'Senior Developer',level:3,initials:'BM',bg:'rgba(0,229,160,0.12)',bc:'rgba(0,229,160,0.4)',tc:'#00e5a0'},
+  carol:{name:'Carol Singh',role:'Data Analyst',level:2,initials:'CS',bg:'rgba(180,120,255,0.12)',bc:'rgba(180,120,255,0.4)',tc:'#b478ff'},
+  dave:{name:'Dave Kim',role:'Intern',level:1,initials:'DK',bg:'rgba(255,185,48,0.12)',bc:'rgba(255,185,48,0.35)',tc:'#ffb930'},
+  ext:{name:'TechVendor Support',role:'External Vendor',level:0,initials:'EX',bg:'rgba(255,77,106,0.1)',bc:'rgba(255,77,106,0.35)',tc:'#ff4d6a'}
+};
+var RESOURCES={
+  prod:{name:'Production Database',req:4,tag:'CRITICAL',tagColor:'var(--danger)'},
+  hr:{name:'HR Records System',req:3,tag:'SENSITIVE',tagColor:'var(--warn)'},
+  code:{name:'Code Repository',req:2,tag:'INTERNAL',tagColor:'var(--accent)'},
+  docs:{name:'Internal Wiki',req:1,tag:'RESTRICTED',tagColor:'var(--text2)'},
+  pub:{name:'Public Web Portal',req:0,tag:'PUBLIC',tagColor:'var(--accent2)'}
+};
+
+var PRESET_META={
+  wfh_senior:    {icon:'🏠',name:'Legitimate WFH — but blocked'},
+  after_hours_admin:{icon:'🌙',name:'Admin works late — elevated monitoring'},
+  remote_analyst:{icon:'☕',name:'Analyst in a coffee shop — partial block'},
+  new_joiner:    {icon:'🪪',name:'New employee — first day, no MDM yet'},
+  vendor_weekend:{icon:'🔧',name:'Vendor emergency access — Sunday morning'},
+  leaked_cred_legit:{icon:'🔑',name:'Correct password — but credential is leaked'},
+  impossible_travel_vpn:{icon:'✈️',name:'Frequent flyer — or stolen credentials?'},
+  shared_screen_session:{icon:'💻',name:'Screen sharing session — context switch risk'}
+};
+
+var PRESET_DESCS={
+  wfh_senior:'Bob is a trusted senior developer, working from home on his personal laptop. He has valid credentials, completed MFA, and connected via VPN. Why is access to the code repository being denied?',
+  after_hours_admin:'Alice is the IT admin performing scheduled maintenance at 21:00. Her credentials, device, and network all check out. Why does the system treat this session differently?',
+  remote_analyst:'Carol is working from a café with her managed, compliant device. MFA is complete. The only difference from her office setup is the network. Why does that alone change the decision?',
+  new_joiner:'A new developer has valid credentials and MFA on their first day. Their corporate laptop is still being enrolled in MDM. Why can\'t they access the code repository they need to start work?',
+  vendor_weekend:'A support vendor claims an emergency and logs in on a Sunday morning. They have the correct shared password. Multiple policy signals are failing — which is most serious?',
+  leaked_cred_legit:'Alice is at the office, on her managed device, at her normal time, and has completed MFA. Her session looks completely normal. Why is she being blocked?',
+  impossible_travel_vpn:'Bob logged in from London this morning. 45 minutes later a login appears from New York. He travels for work regularly. What does the system do, and why?',
+  shared_screen_session:'Carol is in a video call presenting her dashboard. Her manager requests live data from the HR system. Carol tries to navigate there. Why is access denied even mid-presentation?'
+};
+
+var logs = [];
+var studentVote = null;
+var voteSubmitted = false;
+var currentScenario = null;
+var pollInterval = null;
+
+function dot(status){
+  return '<span class="sig-dot sig-'+status+'"></span>';
+}
+
+function scoreColor(s){
+  return s>=70?'var(--accent2)':s>=40?'var(--warn)':'var(--danger)';
+}
+
+function renderScenario(cfg){
+  currentScenario = cfg;
+  document.getElementById('waiting-screen').style.display='none';
+  document.getElementById('classroom-panel').style.display='block';
+
+  var u = USERS[cfg.user];
+  var r = RESOURCES[cfg.res];
+  var preset = cfg.preset ? PRESET_META[cfg.preset] : null;
+  var presetDesc = cfg.preset ? PRESET_DESCS[cfg.preset] : null;
+
+  // Timestamp
+  if(cfg.pushedAt){
+    var d = new Date(cfg.pushedAt);
+    document.getElementById('scenario-ts').textContent = 'Pushed at ' + d.toLocaleTimeString();
+  }
+
+  // Banner
+  var bannerIcon = preset ? preset.icon : '⬡';
+  var bannerTitle = preset ? preset.name : (u.name + ' → ' + r.name);
+  var bannerDesc = presetDesc || ('Instructor-configured scenario: '+u.name+' attempting to access '+r.name+'.');
+  document.getElementById('banner-icon').textContent = bannerIcon;
+  document.getElementById('banner-title').textContent = bannerTitle;
+  document.getElementById('banner-desc').textContent = bannerDesc;
+
+  // Identity card
+  document.getElementById('id-card').innerHTML =
+    '<div class="id-avatar" style="background:'+u.bg+';border-color:'+u.bc+';color:'+u.tc+'">'+u.initials+'</div>'
+   +'<div class="id-info"><div class="id-name">'+u.name+'</div><div class="id-role">'+u.role+'</div></div>'
+   +'<div class="id-level" style="color:'+u.tc+'">L'+u.level+'</div>'
+   +'<div class="locked-badge">LOCKED</div>';
+
+  // Resource card
+  document.getElementById('res-card').innerHTML =
+    '<div><div class="res-name">'+r.name+'</div><div class="res-sub">Minimum clearance: Level '+r.req+'</div></div>'
+   +'<div class="res-tag" style="color:'+r.tagColor+';border-color:'+r.tagColor+'">'+r.tag+'</div>';
+
+  // Context chips
+  var deviceLabels={managed:'Managed / MDM enrolled',byod:'BYOD / personal',unknown:'Unknown device'};
+  var deviceClass={managed:'ok',byod:'warn',unknown:'danger'};
+  var networkLabels={corp:'Corporate network',vpn:'VPN tunnel',remote:'Remote / untrusted',tor:'TOR exit node'};
+  var networkClass={corp:'ok',vpn:'ok',remote:'warn',tor:'danger'};
+  var timeLabels={business:'Business hours',after:'After hours',weekend:'Weekend'};
+  var timeClass={business:'ok',after:'warn',weekend:'warn'};
+  var riskLabels={none:'None detected',geo:'Impossible travel',brute:'Brute force',cred:'Leaked credential',priv:'Privilege escalation'};
+  var riskClass={none:'ok',geo:'danger',brute:'danger',cred:'danger',priv:'danger'};
+
+  document.getElementById('ctx-grid').innerHTML =
+    chip('Device',deviceLabels[cfg.device],deviceClass[cfg.device])
+   +chip('Network',networkLabels[cfg.network],networkClass[cfg.network])
+   +chip('Time',timeLabels[cfg.time],timeClass[cfg.time])
+   +chip('Risk',riskLabels[cfg.risk],riskClass[cfg.risk])
+   +chip('MFA',cfg.mfa?'Completed':'Not completed',cfg.mfa?'ok':'danger');
+
+  // Signals
+  var score = 100;
+  var signals = [];
+  var identOk = u.level >= r.req;
+  signals.push({label:'Privilege level',val:'L'+u.level+' vs L'+r.req+' required',status:identOk?'ok':'block',note:identOk?'sufficient':'insufficient'});
+  if(!identOk) score -= 50;
+
+  signals.push({label:'MFA verification',val:cfg.mfa?'Completed':'Not completed',status:cfg.mfa?'ok':'warn',note:cfg.mfa?'verified':'single factor only'});
+  if(!cfg.mfa) score -= 20;
+
+  var devP={managed:0,byod:10,unknown:25};
+  var devS={managed:'ok',byod:'warn',unknown:'block'};
+  signals.push({label:'Device posture',val:deviceLabels[cfg.device],status:devS[cfg.device],note:{managed:'attested',byod:'partial trust',unknown:'no attestation'}[cfg.device]});
+  score -= devP[cfg.device];
+
+  var netP={corp:0,vpn:5,remote:15,tor:40};
+  var netS={corp:'ok',vpn:'ok',remote:'warn',tor:'block'};
+  signals.push({label:'Network origin',val:networkLabels[cfg.network],status:netS[cfg.network],note:{corp:'trusted',vpn:'encrypted',remote:'untrusted',tor:'anonymised'}[cfg.network]});
+  score -= netP[cfg.network];
+
+  var timS={business:'ok',after:'warn',weekend:'warn'};
+  signals.push({label:'Access time',val:timeLabels[cfg.time],status:timS[cfg.time],note:cfg.time==='business'?'normal window':'outside baseline'});
+  if(cfg.time!=='business') score -= 5;
+
+  var riskP={none:0,geo:60,brute:50,cred:60,priv:55};
+  var riskS={none:'ok',geo:'block',brute:'block',cred:'block',priv:'block'};
+  signals.push({label:'Risk signal',val:riskLabels[cfg.risk],status:riskS[cfg.risk],note:{none:'clean',geo:'impossible geography',brute:'attack pattern',cred:'credential compromised',priv:'escalation detected'}[cfg.risk]});
+  score -= riskP[cfg.risk]||0;
+  score = Math.max(0,score);
+
+  var srEl = document.getElementById('signal-rows');
+  srEl.innerHTML = '';
+  signals.forEach(function(s){
+    var r2 = document.createElement('div');
+    r2.className = 'signal-row';
+    r2.innerHTML = '<span class="signal-label">'+s.label+'</span>'
+      +'<span class="signal-right">'+dot(s.status)
+      +'<span class="signal-val">'+s.val+'</span>'
+      +'<span class="signal-note">— '+s.note+'</span></span>';
+    srEl.appendChild(r2);
+  });
+
+  var sc = scoreColor(score);
+  document.getElementById('score-display').textContent = score+'/100';
+  document.getElementById('score-display').style.color = sc;
+  document.getElementById('score-val').textContent = score+'/100';
+  document.getElementById('score-val').style.color = sc;
+  document.getElementById('score-bar').style.width = score+'%';
+  document.getElementById('score-bar').style.background = sc;
+
+  // Decision
+  var hardBlock = !identOk || cfg.risk!=='none' || cfg.network==='tor' || cfg.device==='unknown';
+  var needMfa = !cfg.mfa && r.req >= 2;
+  var cls, icon, title, desc;
+  if(!identOk){cls='deny';icon='✕';title='Access Denied — Privilege Insufficient';desc=u.name+' (L'+u.level+') does not have the minimum clearance required for '+r.name+' (L'+r.req+'). Zero trust enforces least privilege as a hard block — no override is possible regardless of other signals.'}
+  else if(cfg.risk==='geo'){cls='deny';icon='✕';title='Access Denied — Impossible Travel';desc='Login detected from a location that is physically unreachable given the previous session location and elapsed time. Account suspended pending out-of-band identity verification.'}
+  else if(cfg.risk==='brute'){cls='deny';icon='✕';title='Access Denied — Credential Attack';desc='Automated attack pattern detected against this account. Account temporarily locked. SIEM alert raised. IP block applied at WAF layer.'}
+  else if(cfg.risk==='cred'){cls='deny';icon='✕';title='Access Denied — Compromised Credential';desc='This account\'s credentials appear in an active breach database. The password must be reset and MFA re-enrolled before access can be restored, even if the session otherwise appears legitimate.'}
+  else if(cfg.risk==='priv'){cls='deny';icon='✕';title='Access Denied — Escalation Attempt';desc='Privilege escalation behaviour detected. Endpoint quarantined. Incident response team notified. Session terminated.'}
+  else if(cfg.network==='tor'){cls='deny';icon='✕';title='Access Denied — Anonymizer Detected';desc='Request originates from a confirmed TOR exit node. Accountability cannot be established. Zero trust policy mandates block regardless of identity, resource sensitivity, or stated reason.'}
+  else if(cfg.device==='unknown'){cls='deny';icon='✕';title='Access Denied — Device Unverified';desc='No device attestation data is available. Zero trust cannot evaluate security posture, patch status, or encryption state. Device must be enrolled in MDM before access is provisioned.'}
+  else if(needMfa){cls='warn';icon='△';title='Step-Up Authentication Required';desc='This resource requires Level '+r.req+' clearance with multi-factor verification. MFA challenge issued. Session suspended until second factor is completed.'}
+  else if(score<60){cls='warn';icon='△';title='Access Granted — Elevated Monitoring';desc='Access is permitted, but trust score is '+score+'/100. This session is flagged for continuous monitoring. All actions are logged with enhanced fidelity. Re-evaluation triggers on any anomalous behaviour.'}
+  else{cls='allow';icon='✓';title='Access Granted';desc='All policy signals satisfied. Trust score: '+score+'/100. Session established with standard monitoring. Continuous re-evaluation is active — session can be revoked at any time if signals change.'}
+
+  // Store decision for reveal after vote
+  window._pendingDecision = {cls:cls, icon:icon, title:title, desc:desc};
+
+  // Reset vote state for new scenario
+  studentVote = null;
+  voteSubmitted = false;
+  document.getElementById('vote-wrap').style.display='block';
+  document.getElementById('reveal-wrap').style.display='none';
+  document.getElementById('reveal-wrap').innerHTML='';
+  ['vbtn-grant','vbtn-deny','vbtn-stepup'].forEach(function(id){
+    var b = document.getElementById(id);
+    b.classList.remove('selected');
+    b.style.pointerEvents='';
+    b.style.opacity='';
+  });
+  document.getElementById('vote-submit').disabled=true;
+
+  // Log
+  var now = new Date();
+  var ts = now.toLocaleTimeString('en-US',{hour12:false});
+  var stMap={allow:'ok',deny:'deny',warn:'mfa'};
+  var stTxt={ok:'ALLOW',deny:'DENY ',mfa:'MFA  '};
+  var sc2 = stMap[cls];
+  var entry = '<div class="log-entry"><span class="log-'+sc2+'">'+stTxt[sc2]+'</span> <span class="log-user">'+u.name+'</span> → '+r.name+' | score:'+score+' | '+cfg.device+'/'+cfg.network+'/'+cfg.risk+' ['+ts+']</div>';
+  logs.unshift(entry);
+  if(logs.length>8) logs.pop();
+  document.getElementById('log-area').innerHTML = logs.join('');
+
+  // Policies
+  var pl = document.getElementById('policy-list');
+  if(cfg.policies && cfg.policies.length){
+    pl.innerHTML = cfg.policies.map(function(p){
+      return '<div class="policy-item"><span class="policy-bullet">■</span><span class="policy-text">'+p+'</span></div>';
+    }).join('');
+  } else {
+    pl.innerHTML = '<div class="empty-panel">No specific policies configured for this scenario.</div>';
+  }
+
+  // Discussion moved to instructor panel
+
+  // Pillars
+  var pillars = [
+    {icon:'⬡',text:'<strong>Never trust, always verify</strong> — this request was evaluated from zero, regardless of prior sessions or known identity.'}
+  ];
+  if(!identOk||cfg.risk!=='none') pillars.push({icon:'🔒',text:'<strong>Least privilege</strong> — access is scoped to the minimum required. A privilege mismatch or risk signal is a hard block.'});
+  if(!cfg.mfa||needMfa) pillars.push({icon:'🔑',text:'<strong>Explicit verification</strong> — MFA is a mandatory signal for sensitive resources. A missing second factor triggers step-up authentication.'});
+  if(cfg.device!=='managed') pillars.push({icon:'💻',text:'<strong>Device posture</strong> — zero trust treats unmanaged or unknown devices as untrusted endpoints regardless of who is using them.'});
+  if(cfg.risk!=='none') pillars.push({icon:'📊',text:'<strong>Continuous monitoring</strong> — behavioural anomalies override all other signals and trigger immediate denial.'});
+  if(cls==='deny'||cls==='warn') pillars.push({icon:'🛡',text:'<strong>Assume breach</strong> — the system is designed assuming an attacker may already have valid credentials. Every signal is evaluated as if compromise is possible.'});
+  pillars.push({icon:'🧱',text:'<strong>Defence in depth</strong> — multiple independent signals are evaluated simultaneously. Failing any one can change the access decision.'});
+  document.getElementById('pillars-list').innerHTML = pillars.map(function(p){
+    return '<div class="pillar"><span class="pillar-icon">'+p.icon+'</span><span class="pillar-text">'+p.text+'</span></div>';
+  }).join('');
+}
+
+function chip(label, val, cls){
+  return '<div class="ctx-chip"><div class="ctx-chip-label">'+label+'</div><div class="ctx-chip-val '+cls+'">'+val+'</div></div>';
+}
+
+function castVote(v){
+  if(voteSubmitted) return;
+  studentVote = v;
+  var map = {grant:'vbtn-grant', deny:'vbtn-deny', stepup:'vbtn-stepup'};
+  ['vbtn-grant','vbtn-deny','vbtn-stepup'].forEach(function(id){
+    document.getElementById(id).classList.remove('selected');
+  });
+  document.getElementById(map[v]).classList.add('selected');
+  document.getElementById('vote-submit').disabled = false;
+}
+
+function revealDecision(){
+  if(!studentVote || voteSubmitted) return;
+  voteSubmitted = true;
+  var d = window._pendingDecision;
+  if(!d) return;
+
+  // Lock voting buttons
+  ['vbtn-grant','vbtn-deny','vbtn-stepup'].forEach(function(id){
+    document.getElementById(id).style.pointerEvents='none';
+    document.getElementById(id).style.opacity='.5';
+  });
+  document.getElementById('vote-submit').disabled=true;
+
+  // Map system decision to vote category
+  var sysVote = d.cls==='allow'?'grant':d.cls==='deny'?'deny':'stepup';
+  var isCorrect = studentVote===sysVote;
+  var isPartial = !isCorrect && (
+    (studentVote==='deny' && sysVote==='stepup') ||
+    (studentVote==='stepup' && sysVote==='deny')
+  );
+
+  var voteLabels = {grant:'Grant Access', deny:'Deny Access', stepup:'Step-Up MFA'};
+  var feedbackHtml, feedbackClass;
+  if(isCorrect){
+    feedbackClass='verdict-correct';
+    feedbackHtml='<b>Correct.</b> The system reached the same conclusion: <b>'+d.title+'</b>. Well reasoned — discuss with the class <em>which</em> signal or policy drove this decision.';
+  } else if(isPartial){
+    feedbackClass='verdict-partial';
+    feedbackHtml='<b>Close.</b> You voted <b>'+voteLabels[studentVote]+'</b> but the system decided <b>'+d.title+'</b>. Both involve restricted access — the distinction matters. What is the difference between a hard deny and a step-up challenge?';
+  } else {
+    feedbackClass='verdict-wrong';
+    feedbackHtml='<b>Not quite.</b> You voted <b>'+voteLabels[studentVote]+'</b> but the system decided <b>'+d.title+'</b>. Review the signals above — which one tipped the decision, and why does the policy treat it as a hard rule?';
+  }
+
+  var bgMap={allow:'rgba(0,229,160,0.06)',deny:'rgba(255,77,106,0.06)',warn:'rgba(255,185,48,0.06)'};
+  var bdMap={allow:'rgba(0,229,160,0.35)',deny:'rgba(255,77,106,0.3)',warn:'rgba(255,185,48,0.3)'};
+  var icMap={allow:'var(--accent2)',deny:'var(--danger)',warn:'var(--warn)'};
+
+  var rw = document.getElementById('reveal-wrap');
+  rw.className='reveal-wrap fade-in';
+  rw.style.display='block';
+  rw.style.background=bgMap[d.cls];
+  rw.style.border='1px solid '+bdMap[d.cls];
+  rw.innerHTML=
+    '<div class="reveal-verdict">'
+   +'<div class="reveal-icon" style="color:'+icMap[d.cls]+'">'+d.icon+'</div>'
+   +'<div><div class="reveal-title" style="color:'+icMap[d.cls]+'">'+d.title+'</div>'
+   +'<div class="reveal-desc">'+d.desc+'</div></div></div>'
+   +'<div class="verdict-feedback '+feedbackClass+'">'+feedbackHtml+'</div>';
+}
+
+function checkForScenario(){
+  var raw = localStorage.getItem('zt_classroom_scenario');
+  if(!raw) return;
+  try{
+    var cfg = JSON.parse(raw);
+    if(!currentScenario || cfg.pushedAt !== currentScenario.pushedAt){
+      renderScenario(cfg);
+    }
+  } catch(e){}
+}
+
+// Poll every 2 seconds for new scenario
+checkForScenario();
+pollInterval = setInterval(checkForScenario, 2000);
+</script>
+</body>
+</html>

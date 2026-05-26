@@ -191,10 +191,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-1">
     <div class="q-header"><span class="q-num">Q1</span><span class="q-text">A login to Alice's account was recorded in Lagos, Nigeria at 07:52 UTC. Just 22 minutes later, another login came from London. What does this most likely indicate?</span></div>
     <div class="q-choices" id="choices-1">
-      <div class="choice" onclick="select(1,'A')"><span class="choice-letter">A</span><span class="choice-text">Alice commutes extremely quickly between countries for work</span></div>
-      <div class="choice" onclick="select(1,'B')"><span class="choice-letter">B</span><span class="choice-text">Alice's account credentials have likely been stolen and are being used by someone in Nigeria</span></div>
-      <div class="choice" onclick="select(1,'C')"><span class="choice-letter">C</span><span class="choice-text">The login system has a bug that records incorrect locations</span></div>
-      <div class="choice" onclick="select(1,'D')"><span class="choice-letter">D</span><span class="choice-text">Alice was testing the system remotely using a VPN</span></div>
+      <div class="choice" onclick="select(1,'A')"><span class="choice-letter">A</span><span class="choice-text">Alice's credentials were likely stolen and used remotely</span></div>
+      <div class="choice" onclick="select(1,'B')"><span class="choice-letter">B</span><span class="choice-text">Alice travels regularly for work and was in Lagos that morning before heading home</span></div>
+      <div class="choice" onclick="select(1,'C')"><span class="choice-letter">C</span><span class="choice-text">The authentication system misread Alice's VPN exit node as a foreign IP address</span></div>
+      <div class="choice" onclick="select(1,'D')"><span class="choice-letter">D</span><span class="choice-text">Alice was running a remote access test and forgot to log it</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-1" onclick="submit(1)" disabled>Submit answer</button><span class="q-hint" id="hint-1">Select an option above</span></div>
     <div class="reveal-box" id="reveal-1"></div>
@@ -204,10 +204,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-2">
     <div class="q-header"><span class="q-num">Q2</span><span class="q-text">Alice admitted to reusing a password on "throwaway sites." That hotel rewards site was breached and her credentials appeared in a dark-web dump. What is this type of attack called when those stolen credentials are then tried on other services?</span></div>
     <div class="q-choices" id="choices-2">
-      <div class="choice" onclick="select(2,'A')"><span class="choice-letter">A</span><span class="choice-text">Phishing</span></div>
-      <div class="choice" onclick="select(2,'B')"><span class="choice-letter">B</span><span class="choice-text">Credential stuffing</span></div>
-      <div class="choice" onclick="select(2,'C')"><span class="choice-letter">C</span><span class="choice-text">SIM swapping</span></div>
-      <div class="choice" onclick="select(2,'D')"><span class="choice-letter">D</span><span class="choice-text">Privilege escalation</span></div>
+      <div class="choice" onclick="select(2,'A')"><span class="choice-letter">A</span><span class="choice-text">Phishing — tricking Alice into handing over her password directly via a fake login page</span></div>
+      <div class="choice" onclick="select(2,'B')"><span class="choice-letter">B</span><span class="choice-text">Credential stuffing — reusing stolen passwords from a previous breach</span></div>
+      <div class="choice" onclick="select(2,'C')"><span class="choice-letter">C</span><span class="choice-text">SIM swapping — transferring Alice's mobile number to intercept her MFA codes</span></div>
+      <div class="choice" onclick="select(2,'D')"><span class="choice-letter">D</span><span class="choice-text">Privilege escalation — exploiting a flaw to upgrade Alice's existing session to admin level</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-2" onclick="submit(2)" disabled>Submit answer</button><span class="q-hint" id="hint-2">Select an option above</span></div>
     <div class="reveal-box" id="reveal-2"></div>
@@ -217,10 +217,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-3">
     <div class="q-header"><span class="q-num">Q3</span><span class="q-text">If an attacker already has Alice's correct password, what single security control would most effectively prevent them from accessing the Production Database?</span></div>
     <div class="q-choices" id="choices-3">
-      <div class="choice" onclick="select(3,'A')"><span class="choice-letter">A</span><span class="choice-text">A stronger firewall blocking external IP addresses</span></div>
-      <div class="choice" onclick="select(3,'B')"><span class="choice-letter">B</span><span class="choice-text">Multi-factor authentication (MFA) requiring a second verification step</span></div>
-      <div class="choice" onclick="select(3,'C')"><span class="choice-letter">C</span><span class="choice-text">Encrypting the database contents</span></div>
-      <div class="choice" onclick="select(3,'D')"><span class="choice-letter">D</span><span class="choice-text">Requiring Alice to change her password every 30 days</span></div>
+      <div class="choice" onclick="select(3,'A')"><span class="choice-letter">A</span><span class="choice-text">A stricter firewall that blocks logins from unrecognised foreign IP addresses automatically</span></div>
+      <div class="choice" onclick="select(3,'B')"><span class="choice-letter">B</span><span class="choice-text">Encrypting the database so its contents are unreadable without a decryption key</span></div>
+      <div class="choice" onclick="select(3,'C')"><span class="choice-letter">C</span><span class="choice-text">Mandatory 30-day password rotation to limit how long a stolen credential stays valid</span></div>
+      <div class="choice" onclick="select(3,'D')"><span class="choice-letter">D</span><span class="choice-text">MFA — requiring a second factor the attacker doesn't have</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-3" onclick="submit(3)" disabled>Submit answer</button><span class="q-hint" id="hint-3">Select an option above</span></div>
     <div class="reveal-box" id="reveal-3"></div>
@@ -244,10 +244,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-4">
     <div class="q-header"><span class="q-num">Q4</span><span class="q-text">Bob's account received 847 failed login attempts in 4 minutes from 34 different IP addresses across 6 countries. What does this pattern most clearly indicate?</span></div>
     <div class="q-choices" id="choices-4">
-      <div class="choice" onclick="select(4,'A')"><span class="choice-letter">A</span><span class="choice-text">Bob forgot his password and kept retrying from different devices</span></div>
-      <div class="choice" onclick="select(4,'B')"><span class="choice-letter">B</span><span class="choice-text">The company's authentication servers had a technical fault</span></div>
-      <div class="choice" onclick="select(4,'C')"><span class="choice-letter">C</span><span class="choice-text">An automated credential stuffing attack was targeting Bob's account</span></div>
-      <div class="choice" onclick="select(4,'D')"><span class="choice-letter">D</span><span class="choice-text">Bob's colleagues were all trying to access his account simultaneously</span></div>
+      <div class="choice" onclick="select(4,'A')"><span class="choice-letter">A</span><span class="choice-text">Bob forgot his password and kept retrying, triggering the account lockout threshold repeatedly</span></div>
+      <div class="choice" onclick="select(4,'B')"><span class="choice-letter">B</span><span class="choice-text">The company's authentication servers experienced a technical fault that logged phantom requests</span></div>
+      <div class="choice" onclick="select(4,'C')"><span class="choice-letter">C</span><span class="choice-text">An automated credential stuffing attack targeted his account</span></div>
+      <div class="choice" onclick="select(4,'D')"><span class="choice-letter">D</span><span class="choice-text">Multiple colleagues attempted to log in as Bob simultaneously to finish a project while he was away</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-4" onclick="submit(4)" disabled>Submit answer</button><span class="q-hint" id="hint-4">Select an option above</span></div>
     <div class="reveal-box" id="reveal-4"></div>
@@ -257,10 +257,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-5">
     <div class="q-header"><span class="q-num">Q5</span><span class="q-text">Bob uses an authenticator app for MFA, but his phone is protected by a 4-digit PIN shared with his partner. Why does this weaken his MFA security?</span></div>
     <div class="q-choices" id="choices-5">
-      <div class="choice" onclick="select(5,'A')"><span class="choice-letter">A</span><span class="choice-text">Authenticator apps don't work properly on phones with shared PINs</span></div>
-      <div class="choice" onclick="select(5,'B')"><span class="choice-letter">B</span><span class="choice-text">Anyone who physically accesses his phone and knows the PIN can generate MFA codes</span></div>
-      <div class="choice" onclick="select(5,'C')"><span class="choice-letter">C</span><span class="choice-text">4-digit PINs automatically disable MFA after a period of time</span></div>
-      <div class="choice" onclick="select(5,'D')"><span class="choice-letter">D</span><span class="choice-text">Sharing a PIN is a legal violation that invalidates the MFA token</span></div>
+      <div class="choice" onclick="select(5,'A')"><span class="choice-letter">A</span><span class="choice-text">Anyone with the phone and PIN can generate his MFA codes</span></div>
+      <div class="choice" onclick="select(5,'B')"><span class="choice-letter">B</span><span class="choice-text">Authenticator apps malfunction when the device PIN has been shared with another person</span></div>
+      <div class="choice" onclick="select(5,'C')"><span class="choice-letter">C</span><span class="choice-text">4-digit PINs are too short to protect an authenticator app and are automatically disabled by most MFA providers after 90 days</span></div>
+      <div class="choice" onclick="select(5,'D')"><span class="choice-letter">D</span><span class="choice-text">Sharing a device PIN with a family member constitutes a breach of the company's acceptable use policy and voids the MFA registration</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-5" onclick="submit(5)" disabled>Submit answer</button><span class="q-hint" id="hint-5">Select an option above</span></div>
     <div class="reveal-box" id="reveal-5"></div>
@@ -270,10 +270,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-6">
     <div class="q-header"><span class="q-num">Q6</span><span class="q-text">Bob's personal MacBook is not enrolled in the company's MDM system and runs an unpatched OS with 14 known CVEs. From a zero trust perspective, why is this a problem even if Bob himself is trustworthy?</span></div>
     <div class="q-choices" id="choices-6">
-      <div class="choice" onclick="select(6,'A')"><span class="choice-letter">A</span><span class="choice-text">It isn't a problem — only the person's identity matters in zero trust, not the device</span></div>
-      <div class="choice" onclick="select(6,'B')"><span class="choice-letter">B</span><span class="choice-text">The company cannot verify the device's security posture, and it may be compromised without Bob knowing</span></div>
-      <div class="choice" onclick="select(6,'C')"><span class="choice-letter">C</span><span class="choice-text">Unpatched devices automatically block MFA from functioning</span></div>
-      <div class="choice" onclick="select(6,'D')"><span class="choice-letter">D</span><span class="choice-text">MDM enrolment is only required for mobile phones, not laptops</span></div>
+      <div class="choice" onclick="select(6,'A')"><span class="choice-letter">A</span><span class="choice-text">It is not a problem — zero trust evaluates the person's verified identity, and device type is irrelevant to the access decision</span></div>
+      <div class="choice" onclick="select(6,'B')"><span class="choice-letter">B</span><span class="choice-text">The company can't verify device posture, so it may already be compromised</span></div>
+      <div class="choice" onclick="select(6,'C')"><span class="choice-letter">C</span><span class="choice-text">Unpatched operating systems automatically disable MFA integrations as a security measure</span></div>
+      <div class="choice" onclick="select(6,'D')"><span class="choice-letter">D</span><span class="choice-text">MDM enrolment rules apply only to iOS and Android mobile devices, not to macOS or Windows laptops</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-6" onclick="submit(6)" disabled>Submit answer</button><span class="q-hint" id="hint-6">Select an option above</span></div>
     <div class="reveal-box" id="reveal-6"></div>
@@ -297,10 +297,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-7">
     <div class="q-header"><span class="q-num">Q7</span><span class="q-text">Carol clicked a link in an email from "hr-techcorp-portal.com" instead of "techcorp.com" and partially entered her password before noticing. What technique did the attacker use to make the fake domain look legitimate?</span></div>
     <div class="q-choices" id="choices-7">
-      <div class="choice" onclick="select(7,'A')"><span class="choice-letter">A</span><span class="choice-text">Typosquatting — registering a domain name very similar to the real one</span></div>
-      <div class="choice" onclick="select(7,'B')"><span class="choice-letter">B</span><span class="choice-text">SQL injection — inserting malicious code into the company's real website</span></div>
-      <div class="choice" onclick="select(7,'C')"><span class="choice-letter">C</span><span class="choice-text">Brute force — guessing the company's domain until a match was found</span></div>
-      <div class="choice" onclick="select(7,'D')"><span class="choice-letter">D</span><span class="choice-text">SIM swapping — redirecting Carol's phone number to the fake domain</span></div>
+      <div class="choice" onclick="select(7,'A')"><span class="choice-letter">A</span><span class="choice-text">Typosquatting — a lookalike domain designed to fool inattentive users</span></div>
+      <div class="choice" onclick="select(7,'B')"><span class="choice-letter">B</span><span class="choice-text">SQL injection — inserting malicious database commands into the company's real login form to harvest credentials silently</span></div>
+      <div class="choice" onclick="select(7,'C')"><span class="choice-letter">C</span><span class="choice-text">Brute force — systematically guessing domain name variations until landing on one Carol would recognise and trust</span></div>
+      <div class="choice" onclick="select(7,'D')"><span class="choice-letter">D</span><span class="choice-text">SIM swapping — hijacking Carol's mobile number so that all communications, including password reset links, are redirected to the attacker</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-7" onclick="submit(7)" disabled>Submit answer</button><span class="q-hint" id="hint-7">Select an option above</span></div>
     <div class="reveal-box" id="reveal-7"></div>
@@ -310,10 +310,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-8">
     <div class="q-header"><span class="q-num">Q8</span><span class="q-text">Carol uses SMS text messages as her second MFA factor. Why is SMS-based MFA considered weaker than using an authenticator app?</span></div>
     <div class="q-choices" id="choices-8">
-      <div class="choice" onclick="select(8,'A')"><span class="choice-letter">A</span><span class="choice-text">SMS codes expire too quickly to be useful</span></div>
-      <div class="choice" onclick="select(8,'B')"><span class="choice-letter">B</span><span class="choice-text">SMS messages can be intercepted via SIM swap attacks, where an attacker transfers your phone number to their SIM</span></div>
-      <div class="choice" onclick="select(8,'C')"><span class="choice-letter">C</span><span class="choice-text">Mobile networks do not encrypt text messages at all</span></div>
-      <div class="choice" onclick="select(8,'D')"><span class="choice-letter">D</span><span class="choice-text">SMS MFA is banned by GDPR regulations in the EU</span></div>
+      <div class="choice" onclick="select(8,'A')"><span class="choice-letter">A</span><span class="choice-text">SMS codes expire within 30 seconds, which is often too short for users to act on them in time</span></div>
+      <div class="choice" onclick="select(8,'B')"><span class="choice-letter">B</span><span class="choice-text">Mobile networks transmit SMS in plaintext across the SS7 protocol, meaning any network operator globally can read and forward Carol's codes to a third party without her knowledge</span></div>
+      <div class="choice" onclick="select(8,'C')"><span class="choice-letter">C</span><span class="choice-text">An attacker can hijack SMS codes via a SIM swap without ever touching Carol's phone</span></div>
+      <div class="choice" onclick="select(8,'D')"><span class="choice-letter">D</span><span class="choice-text">GDPR Article 32 classifies SMS as an insufficiently secure channel for authentication, making its use for MFA a reportable data protection violation in the UK and EU</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-8" onclick="submit(8)" disabled>Submit answer</button><span class="q-hint" id="hint-8">Select an option above</span></div>
     <div class="reveal-box" id="reveal-8"></div>
@@ -323,10 +323,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-9">
     <div class="q-header"><span class="q-num">Q9</span><span class="q-text">Carol accessed the internal wiki without a VPN using a cached but technically expired authentication token. In zero trust terms, why should this have been blocked?</span></div>
     <div class="q-choices" id="choices-9">
-      <div class="choice" onclick="select(9,'A')"><span class="choice-letter">A</span><span class="choice-text">VPN usage is mandatory for all access to any resource, with no exceptions</span></div>
-      <div class="choice" onclick="select(9,'B')"><span class="choice-letter">B</span><span class="choice-text">Zero trust requires every access request to be explicitly verified — an expired token means the session's trust has lapsed and must be re-established</span></div>
-      <div class="choice" onclick="select(9,'C')"><span class="choice-letter">C</span><span class="choice-text">Cached tokens are inherently malicious and indicate a hack attempt</span></div>
-      <div class="choice" onclick="select(9,'D')"><span class="choice-letter">D</span><span class="choice-text">The wiki is public information, so this access does not need to be blocked</span></div>
+      <div class="choice" onclick="select(9,'A')"><span class="choice-letter">A</span><span class="choice-text">All company resource access requires an active VPN connection at all times — no exceptions exist for any resource type or user role</span></div>
+      <div class="choice" onclick="select(9,'B')"><span class="choice-letter">B</span><span class="choice-text">A cached authentication token in a browser bookmark is classified as a man-in-the-middle artefact and automatically signals a deliberate intrusion attempt to the server</span></div>
+      <div class="choice" onclick="select(9,'C')"><span class="choice-letter">C</span><span class="choice-text">Because the internal wiki contains only non-sensitive procedural documentation, it is exempt from zero trust token validation requirements under the least-privilege classification framework</span></div>
+      <div class="choice" onclick="select(9,'D')"><span class="choice-letter">D</span><span class="choice-text">An expired token means trust has lapsed — zero trust requires re-verification, not carried-over sessions</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-9" onclick="submit(9)" disabled>Submit answer</button><span class="q-hint" id="hint-9">Select an option above</span></div>
     <div class="reveal-box" id="reveal-9"></div>
@@ -350,10 +350,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-10">
     <div class="q-header"><span class="q-num">Q10</span><span class="q-text">Dave holds Level 1 clearance and attempted to access the Production Database, which requires Level 4. He said he was "just exploring." Should zero trust block this access?</span></div>
     <div class="q-choices" id="choices-10">
-      <div class="choice" onclick="select(10,'A')"><span class="choice-letter">A</span><span class="choice-text">No — if Dave's intent was innocent, the system should allow it with a warning</span></div>
-      <div class="choice" onclick="select(10,'B')"><span class="choice-letter">B</span><span class="choice-text">Yes — zero trust enforces least privilege absolutely. Intent does not change a privilege mismatch; the system blocks first and investigates second</span></div>
-      <div class="choice" onclick="select(10,'C')"><span class="choice-letter">C</span><span class="choice-text">Only if Dave has previously triggered security alerts</span></div>
-      <div class="choice" onclick="select(10,'D')"><span class="choice-letter">D</span><span class="choice-text">Only if his manager has not vouched for him in writing</span></div>
+      <div class="choice" onclick="select(10,'A')"><span class="choice-letter">A</span><span class="choice-text">No — zero trust systems are designed to consider stated intent and should issue a warning rather than a hard block for first-time access violations</span></div>
+      <div class="choice" onclick="select(10,'B')"><span class="choice-letter">B</span><span class="choice-text">Yes — least privilege is enforced absolutely; intent is irrelevant to the access decision</span></div>
+      <div class="choice" onclick="select(10,'C')"><span class="choice-letter">C</span><span class="choice-text">Only if Dave's account has already been flagged in a prior security incident — first-time privilege mismatches are typically logged but not blocked to avoid disrupting legitimate exploratory work</span></div>
+      <div class="choice" onclick="select(10,'D')"><span class="choice-letter">D</span><span class="choice-text">Only if his line manager has not submitted a temporary elevated access request through the IT helpdesk on his behalf within the last 24 hours</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-10" onclick="submit(10)" disabled>Submit answer</button><span class="q-hint" id="hint-10">Select an option above</span></div>
     <div class="reveal-box" id="reveal-10"></div>
@@ -363,10 +363,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-11">
     <div class="q-header"><span class="q-num">Q11</span><span class="q-text">Old server credentials and an "admin override code" from 2019 were left on a forgotten wiki page, which Dave found. Who is responsible for this security failure?</span></div>
     <div class="q-choices" id="choices-11">
-      <div class="choice" onclick="select(11,'A')"><span class="choice-letter">A</span><span class="choice-text">Dave — he should not have been reading old documentation</span></div>
-      <div class="choice" onclick="select(11,'B')"><span class="choice-letter">B</span><span class="choice-text">The organisation — sensitive credentials should never be stored in plain text and should be removed when no longer needed (data hygiene)</span></div>
-      <div class="choice" onclick="select(11,'C')"><span class="choice-letter">C</span><span class="choice-text">The original author of the wiki page in 2019</span></div>
-      <div class="choice" onclick="select(11,'D')"><span class="choice-letter">D</span><span class="choice-text">Both Dave and the organisation share equal responsibility</span></div>
+      <div class="choice" onclick="select(11,'A')"><span class="choice-letter">A</span><span class="choice-text">The organisation — credentials must never be stored in plain text and must be deleted when no longer needed</span></div>
+      <div class="choice" onclick="select(11,'B')"><span class="choice-letter">B</span><span class="choice-text">Dave — browsing legacy documentation outside his assigned tasks is a policy violation</span></div>
+      <div class="choice" onclick="select(11,'C')"><span class="choice-letter">C</span><span class="choice-text">The original page author — whoever wrote the wiki entry in 2019 bears sole ongoing responsibility for its content, regardless of subsequent staff changes, system audits, or the organisation's document retention policies</span></div>
+      <div class="choice" onclick="select(11,'D')"><span class="choice-letter">D</span><span class="choice-text">Both share equal responsibility — Dave for reading it and the organisation for not restricting intern access to legacy documentation sections of the wiki</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-11" onclick="submit(11)" disabled>Submit answer</button><span class="q-hint" id="hint-11">Select an option above</span></div>
     <div class="reveal-box" id="reveal-11"></div>
@@ -376,10 +376,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-12">
     <div class="q-header"><span class="q-num">Q12</span><span class="q-text">Dave ran a privilege escalation script on his company laptop that he found on GitHub. The EDR system flagged it immediately. What does this tell us about the value of EDR compared to traditional antivirus?</span></div>
     <div class="q-choices" id="choices-12">
-      <div class="choice" onclick="select(12,'A')"><span class="choice-letter">A</span><span class="choice-text">Nothing — EDR and antivirus work in exactly the same way</span></div>
-      <div class="choice" onclick="select(12,'B')"><span class="choice-letter">B</span><span class="choice-text">EDR detects suspicious behaviour (like trying to gain admin rights), not just known malware signatures — so it catches threats that antivirus would miss</span></div>
-      <div class="choice" onclick="select(12,'C')"><span class="choice-letter">C</span><span class="choice-text">Antivirus would have also detected this because GitHub scripts are always flagged</span></div>
-      <div class="choice" onclick="select(12,'D')"><span class="choice-letter">D</span><span class="choice-text">EDR only works if the device is MDM-enrolled, which Dave's wasn't</span></div>
+      <div class="choice" onclick="select(12,'A')"><span class="choice-letter">A</span><span class="choice-text">Nothing — EDR is simply a more modern name for antivirus software and uses the same signature-matching detection method under the hood</span></div>
+      <div class="choice" onclick="select(12,'B')"><span class="choice-letter">B</span><span class="choice-text">Traditional antivirus would have caught this too, because any executable script downloaded from a public code repository like GitHub is automatically added to antivirus threat signature databases within minutes of being uploaded</span></div>
+      <div class="choice" onclick="select(12,'C')"><span class="choice-letter">C</span><span class="choice-text">EDR flags suspicious behaviour like privilege escalation, not just known malware files</span></div>
+      <div class="choice" onclick="select(12,'D')"><span class="choice-letter">D</span><span class="choice-text">EDR tools require full MDM enrolment to function — since Dave's laptop was a company-issued device still completing onboarding, the EDR agent would have been inactive and unable to generate any alerts</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-12" onclick="submit(12)" disabled>Submit answer</button><span class="q-hint" id="hint-12">Select an option above</span></div>
     <div class="reveal-box" id="reveal-12"></div>
@@ -403,10 +403,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-13">
     <div class="q-header"><span class="q-num">Q13</span><span class="q-text">The TechVendor account is shared by 12–15 people. A login occurred at 02:47 on a Sunday from a TOR exit node. The vendor confirmed no one was working at that time. What has most likely happened?</span></div>
     <div class="q-choices" id="choices-13">
-      <div class="choice" onclick="select(13,'A')"><span class="choice-letter">A</span><span class="choice-text">A vendor agent was working overtime and forgot to report it</span></div>
-      <div class="choice" onclick="select(13,'B')"><span class="choice-letter">B</span><span class="choice-text">The shared credentials have been stolen or leaked, and are now being used by an unauthorised third party</span></div>
-      <div class="choice" onclick="select(13,'C')"><span class="choice-letter">C</span><span class="choice-text">The TOR network randomly routes traffic through company systems</span></div>
-      <div class="choice" onclick="select(13,'D')"><span class="choice-letter">D</span><span class="choice-text">The company's firewall accidentally granted access to an unknown user</span></div>
+      <div class="choice" onclick="select(13,'A')"><span class="choice-letter">A</span><span class="choice-text">A vendor agent worked an unscheduled overnight shift and forgot to log it in the attendance system</span></div>
+      <div class="choice" onclick="select(13,'B')"><span class="choice-letter">B</span><span class="choice-text">TOR exit nodes periodically send automated probe requests to corporate systems as part of their relay verification process, which can be falsely logged as authenticated user sessions in SIEM tools</span></div>
+      <div class="choice" onclick="select(13,'C')"><span class="choice-letter">C</span><span class="choice-text">A misconfigured firewall rule introduced during a recent patch window inadvertently whitelisted the TOR exit node's IP range, granting unauthenticated access that was incorrectly attributed to the vendor account</span></div>
+      <div class="choice" onclick="select(13,'D')"><span class="choice-letter">D</span><span class="choice-text">The shared credentials were stolen and are being used by an unauthorised party</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-13" onclick="submit(13)" disabled>Submit answer</button><span class="q-hint" id="hint-13">Select an option above</span></div>
     <div class="reveal-box" id="reveal-13"></div>
@@ -416,10 +416,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-14">
     <div class="q-header"><span class="q-num">Q14</span><span class="q-text">Even though the TechVendor account only has access to the low-sensitivity internal wiki, zero trust still blocked the TOR login. Why does network origin matter even for low-clearance resources?</span></div>
     <div class="q-choices" id="choices-14">
-      <div class="choice" onclick="select(14,'A')"><span class="choice-letter">A</span><span class="choice-text">It doesn't — network origin is irrelevant if the resource has no sensitive data</span></div>
-      <div class="choice" onclick="select(14,'B')"><span class="choice-letter">B</span><span class="choice-text">TOR use is a legal violation in most countries, so it must always be blocked</span></div>
-      <div class="choice" onclick="select(14,'C')"><span class="choice-letter">C</span><span class="choice-text">Zero trust requires accountability — TOR hides the real identity of the requester, which makes it impossible to verify who is actually accessing the system, regardless of resource sensitivity</span></div>
-      <div class="choice" onclick="select(14,'D')"><span class="choice-letter">D</span><span class="choice-text">TOR connections are always accompanied by malware, which is why they are blocked</span></div>
+      <div class="choice" onclick="select(14,'A')"><span class="choice-letter">A</span><span class="choice-text">Network origin is irrelevant once identity has been verified — zero trust only cares about who is asking, not which route the request took to arrive at the server</span></div>
+      <div class="choice" onclick="select(14,'B')"><span class="choice-letter">B</span><span class="choice-text">TOR is classified as an illegal anonymisation service under UK and EU cybercrime legislation, making any corporate access via TOR automatically a reportable criminal offence regardless of intent</span></div>
+      <div class="choice" onclick="select(14,'C')"><span class="choice-letter">C</span><span class="choice-text">TOR hides the requester's true identity — zero trust demands accountability for every session</span></div>
+      <div class="choice" onclick="select(14,'D')"><span class="choice-letter">D</span><span class="choice-text">All traffic routed through TOR exit nodes is automatically bundled with known malware payloads by the relay operators, meaning any system that accepts a TOR connection is immediately infected regardless of the authentication outcome</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-14" onclick="submit(14)" disabled>Submit answer</button><span class="q-hint" id="hint-14">Select an option above</span></div>
     <div class="reveal-box" id="reveal-14"></div>
@@ -429,10 +429,10 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   <div class="q-card" id="qcard-15">
     <div class="q-header"><span class="q-num">Q15</span><span class="q-text">TechCorp's security team was not consulted when the vendor contract was approved. One of the vendor's employees left but the shared password was never changed. Which two security principles does this scenario primarily violate?</span></div>
     <div class="q-choices" id="choices-15">
-      <div class="choice" onclick="select(15,'A')"><span class="choice-letter">A</span><span class="choice-text">Encryption and firewall policy</span></div>
-      <div class="choice" onclick="select(15,'B')"><span class="choice-letter">B</span><span class="choice-text">Supply chain risk management (vendor security = your security) and stale credential hygiene (access must be revoked when no longer needed)</span></div>
-      <div class="choice" onclick="select(15,'C')"><span class="choice-letter">C</span><span class="choice-text">GDPR compliance and password complexity requirements</span></div>
-      <div class="choice" onclick="select(15,'D')"><span class="choice-letter">D</span><span class="choice-text">Multi-factor authentication and device management</span></div>
+      <div class="choice" onclick="select(15,'A')"><span class="choice-letter">A</span><span class="choice-text">Encryption and firewall policy — the vendor connection should have been TLS-only and the IP range allowlisted to prevent anonymous access</span></div>
+      <div class="choice" onclick="select(15,'B')"><span class="choice-letter">B</span><span class="choice-text">Supply chain risk and stale credential hygiene</span></div>
+      <div class="choice" onclick="select(15,'C')"><span class="choice-letter">C</span><span class="choice-text">GDPR compliance and password complexity — the shared password almost certainly failed to meet the minimum character and symbol requirements mandated under the vendor contract's data processing agreement</span></div>
+      <div class="choice" onclick="select(15,'D')"><span class="choice-letter">D</span><span class="choice-text">MFA and device management — the vendor account lacked a second authentication factor and its access devices were never enrolled in TechCorp's MDM system prior to contract approval</span></div>
     </div>
     <div class="q-actions"><button class="submit-btn" id="submit-15" onclick="submit(15)" disabled>Submit answer</button><span class="q-hint" id="hint-15">Select an option above</span></div>
     <div class="reveal-box" id="reveal-15"></div>
@@ -443,7 +443,7 @@ nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 
 <script>
 var ANSWERS={
-  1:{correct:'B',
+  1:{correct:'A',
     explanation:'This is a classic impossible travel signal. The distance between Lagos and London is approximately 5,000 km — no commercial flight covers that in 22 minutes. One of these logins is not Alice. Zero trust systems flag this as a near-certain indicator of stolen credentials being used remotely.',
     flags:[
       {title:'Impossible travel',text:"Lagos to London is physically impossible in 22 minutes. Alice's credentials were almost certainly stolen — likely from the hotel site breach — and are being used by an attacker in Nigeria while she logs in normally from London."},
@@ -458,7 +458,7 @@ var ANSWERS={
       {title:'Third-party site as attack vector',text:'The hotel rewards site had weaker security than TechCorp. Attackers deliberately target lower-security sites to harvest credentials that will work on higher-value targets. This is supply chain risk applied to identity.'}
     ]
   },
-  3:{correct:'B',
+  3:{correct:'D',
     explanation:"MFA is the single most effective control here. Even if the attacker has Alice's correct password, MFA requires a second factor — something only the real Alice physically has (her phone or hardware key). A firewall can be bypassed if the attacker looks like a legitimate user. Encryption protects data at rest but not access to it. Frequent password changes don't help if the new password is also immediately stolen.",
     flags:[
       {title:'Password alone is never enough for high-privilege accounts',text:"Alice holds Level 4 — the highest clearance. Any account with this level of access should have MFA enforced as mandatory, not optional. Her access to the production database means a compromised account gives an attacker access to live customer data and financial records."},
@@ -472,7 +472,7 @@ var ANSWERS={
       {title:'Bob misidentified the attack as a technical glitch',text:'He described being "locked out" as "the authentication system being glitchy." This is a dangerous misinterpretation — the security team only found out because of SIEM correlation. Users should be trained to report unusual lockouts as potential attacks, not technical issues.'}
     ]
   },
-  5:{correct:'B',
+  5:{correct:'A',
     explanation:"MFA is designed to require something you have (the physical device) plus something you know (the code it generates). If multiple people know the PIN to unlock the device, then the 'something you have' factor is effectively shared — anyone with access to the phone and the PIN can generate valid MFA codes. This breaks the fundamental assumption that only the account owner can produce the second factor.",
     flags:[
       {title:'Weak MFA chain — the second factor is no longer exclusive',text:"Bob's MFA is only as strong as his phone's lock screen. A 4-digit PIN shared with another person means two people have access to the MFA device. If his partner's phone is also shared, or if the PIN is overheard or guessed, the second factor is effectively public."},
@@ -493,14 +493,14 @@ var ANSWERS={
       {title:'Partial credential entry still represents a risk',text:"Carol entered her username and the first half of her password before stopping. Even partial entry can help an attacker: it confirms the username format is correct, and partial passwords can be combined with breach data to reconstruct the full credential. The IT team should have treated this as a full compromise and investigated whether the session was being proxied in real time."}
     ]
   },
-  8:{correct:'B',
+  8:{correct:'C',
     explanation:"SMS-based MFA is the weakest form of the 'something you have' factor because it relies on your phone number rather than the physical device. In a SIM swap attack, an attacker contacts your mobile carrier, impersonates you, and convinces them to transfer your number to a new SIM they control. After that, every SMS sent to your number — including MFA codes — goes to the attacker. An authenticator app generates codes on the physical device itself, so transferring the phone number does nothing.",
     flags:[
       {title:'SIM swap vulnerability in SMS MFA',text:"Carol's SMS-based MFA can be defeated without ever touching her phone. A motivated attacker with some of her personal information (available from public sources or previous breaches) can call her mobile carrier and perform a SIM swap. This is a known, documented attack — not theoretical."},
       {title:'Phishing-resistant MFA would have helped',text:"If Carol used a FIDO2 hardware key or passkey, the phishing attack that captured part of her password would have been useless — these MFA methods are cryptographically bound to the legitimate domain and will not authenticate against a fake site."}
     ]
   },
-  9:{correct:'B',
+  9:{correct:'D',
     explanation:"Zero trust's core principle is 'never trust, always verify' — this applies not just at the initial login but continuously throughout a session. An expired token means the authentication context has lapsed. Even if Carol is who she says she is, the system no longer has a verified, current signal of that. Allowing access on an expired token is equivalent to letting someone use a gym membership that ran out last month — the system is supposed to check every time, not just once.",
     flags:[
       {title:'Session token bypass — expired credentials accepted',text:"The server failed to reject an expired token. This is a server-side vulnerability in session management, not Carol's fault. But it demonstrates exactly why zero trust emphasises continuous verification: a correctly implemented system should reject the expired token immediately and force re-authentication."},
@@ -514,21 +514,21 @@ var ANSWERS={
       {title:'Possible insider threat — ambiguous but flagged',text:"The combination of ethical hacking tools, curiosity about restricted areas, and an executed privilege escalation script creates a pattern that a SOC analyst must investigate. Most insider threats start with small, seemingly innocent actions. The pattern matters even if each individual action has an innocent explanation."}
     ]
   },
-  11:{correct:'B',
+  11:{correct:'A',
     explanation:"Leaving credentials in plain text on a wiki page is an organisational data hygiene failure. The principle of 'you can't leak data you don't have' applies here — if the credentials had been removed when they were no longer needed, Dave could not have found them. Dave reading old documentation is normal behaviour for a curious new employee. The failure belongs to the organisation that allowed sensitive data to persist beyond its useful life.",
     flags:[
       {title:'Data hygiene failure — stale sensitive data',text:"Credentials from 2019 should have been deleted, rotated, or replaced when they were decommissioned. Leaving them on an internal wiki is a violation of basic data hygiene principles. This is the organisation's responsibility, not Dave's."},
       {title:'Defence in depth failure — multiple controls absent',text:"No data loss prevention (DLP) scanning for credentials in the wiki. No automated token/secret expiry. No access review process for old documentation. Each missing control is a layer of defence in depth that was never implemented."}
     ]
   },
-  12:{correct:'B',
+  12:{correct:'C',
     explanation:"Traditional antivirus matches files against a database of known malware signatures. A brand-new script from GitHub — even a malicious one — would not appear in that database. EDR works differently: it monitors behaviour. Attempting to escalate privileges (gain admin rights from a standard user account) is inherently suspicious behaviour regardless of which file caused it. EDR detected the action, not the file.",
     flags:[
       {title:'EDR as behavioural detection',text:"The privilege escalation script triggered the EDR because of what it tried to do — gain elevated system access — not because it was a known malicious file. This is the key advantage of EDR over traditional AV: it catches novel threats and misuse of legitimate tools."},
       {title:'Incomplete onboarding created the gap',text:"Dave had not completed security awareness training before being given device access. A properly onboarded employee would have known that running downloaded scripts on company hardware is a serious policy violation, regardless of their intentions."}
     ]
   },
-  13:{correct:'B',
+  13:{correct:'D',
     explanation:"The vendor confirmed no agent was working at 02:47 on a Sunday morning. The access came from a TOR exit node — a network used to hide the real location of the requester. The combination of an unaccounted-for access time, an anonymising network, and a shared credential that was never changed after an employee left is near-conclusive evidence of credential theft. The stale credential from the departed employee (or someone they told) is the most likely vector.",
     flags:[
       {title:'Stale credential — departed employee access never revoked',text:"One vendor agent left the company but the shared password was never changed. This is credential hygiene failure. The departed employee — or anyone they shared the password with — still has valid access credentials. This is exactly how the Sunday morning access likely occurred."},
