@@ -350,11 +350,6 @@ function doLogout(){
   sessionStorage.removeItem('zt_instructor');
   location.reload();
 }
-if(sessionStorage.getItem('zt_instructor')==='1'){
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('main-panel').style.display='block';
-}
-
 // ── Data ──────────────────────────────────────────────────────────────────
 var USERS={
   alice:{name:'Alice Chen',role:'IT Administrator',level:4,initials:'AC',tc:'#4db8ff'},
@@ -854,12 +849,18 @@ function copyUrl(){
   });
 }
 
+function autoLogin(){
+  if(sessionStorage.getItem('zt_instructor')==='1'){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-panel').style.display='block';
+    init();
+  }
+}
+
 if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded', function(){
-    if(sessionStorage.getItem('zt_instructor')==='1') init();
-  });
+  document.addEventListener('DOMContentLoaded', autoLogin);
 } else {
-  if(sessionStorage.getItem('zt_instructor')==='1') init();
+  autoLogin();
 }
 </script>
 </body>
